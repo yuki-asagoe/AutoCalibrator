@@ -1,13 +1,13 @@
 classdef CameraSelector < handle
     properties (Access = public)
-        DeviceAdaptor string | []
-        DeviceID integer | []
-        DeviceFormat string | []
+        DeviceAdaptor string
+        DeviceID integer
+        DeviceFormat string
     end
     properties (Access = private, Constant = true)
-        AvailableFormatsDictionary = dictionary(
-            ['hamamatsu'],
-            [['MONO16_BIN4x4_512x512_Std']]
+        AvailableFormatsDictionary = dictionary( ...
+            ['hamamatsu'],...
+            [['MONO16_BIN4x4_512x512_Std']]...
         )
     end
 
@@ -18,46 +18,46 @@ classdef CameraSelector < handle
         
         % Return currently available deviceadaptors
         % must be vector of string
-        function availableadaptors getAvailableAdaptors(obj)
-            availableadaptors=imaqhwinfo().InstalledAdaptors
+        function availableadaptors = getAvailableAdaptors(~)
+            availableadaptors=imaqhwinfo().InstalledAdaptors;
         end
 
         % Return available device ids for current DeviceAdaptor
         % Return empty list if current DeviceAdaptor is invalid
-        function availableids getAvailableIDs(obj)
+        function availableids = getAvailableIDs(obj)
             if isempty(obj.DeviceAdaptor)
-                availableids=[]
+                availableids=[];
                 return
             end
-            info = imaqhwinfo(obj.DeciceAdaptor)
+            info = imaqhwinfo(obj.DeviceAdaptor);
             if isfield(info,'DeviceIDs')
-                availableids = info.DeviceIDs
+                availableids = info.DeviceIDs;
             else
-                availableids = []
+                availableids = [];
             end
         end
 
         % Return available formats for current DeciceAdaptor
         % Return empty list if current DeviceAdaptor is invalid
-        function availableformats getAvailableFormats(obj)
+        function availableformats = getAvailableFormats(obj)
             if isKey(obj.AvailableFormatsDictionary, obj.DeviceAdaptor)
-                availableformats = obj.AvailableFormatsDictionary(obj.DeviceAdaptor)
+                availableformats = obj.AvailableFormatsDictionary(obj.DeviceAdaptor);
             else
-                availableformats = []
+                availableformats = [];
             end
         end
 
-        function valid isValid(obj)
-            valid = any(obj.getAvailableAdaptors == obj.DeciceAdaptor) & any(obj.getAvailableIDs == obj.DeviceID) & any(obj.getAvailableFormats == obj.DeviceFormat)
+        function valid = isValid(obj)
+            valid = any(obj.getAvailableAdaptors == obj.DeviceAdaptor) & any(obj.getAvailableIDs == obj.DeviceID) & any(obj.getAvailableFormats == obj.DeviceFormat);
         end
         
         % Return videoinput instance
         % if not isValid, return empty list
-        function videoin getVideoInput(obj)
+        function videoin = getVideoInput(obj)
             if(obj.isValid)
-                videoin=videoinput(obj.DeciceAdaptor,obj.DeviceID,obj.DeviceFormat)
+                videoin=videoinput(obj.DeviceAdaptor,obj.DeviceID,obj.DeviceFormat);
             else
-                videoin = []
+                videoin = [];
             end
         end
     end

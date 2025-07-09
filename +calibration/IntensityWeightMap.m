@@ -8,7 +8,7 @@ classdef IntensityWeightMap
             arguments
                 weightmap {mustBeNumeric}
             end
-            obj.WeightMap=weightmap
+            obj.WeightMap=weightmap;
         end
 
         function saveTo(obj, filename)
@@ -23,11 +23,11 @@ classdef IntensityWeightMap
 
     methods (Access = public, Static)
         function obj = loadFrom(filename)
-            obj = IntensityWeightMap(importdata(filename))
+            obj = IntensityWeightMap(importdata(filename));
         end
 
-        function obj = loadInCompatibleCSVFormatFrom(obj,filename)
-            obj = loadFrom(filename)
+        function obj = loadInCompatibleCSVFormatFrom(filename)
+            obj = loadFrom(filename);
         end
     end
 end
