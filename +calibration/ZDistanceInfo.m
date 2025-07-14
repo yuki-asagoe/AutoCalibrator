@@ -7,7 +7,12 @@ classdef ZDistanceInfo < handle
     end
 
     methods
-        function obj = ZDistanceInfo()
+        function obj = ZDistanceInfo(zDistanceToTargetPlaneFromFocalPlane_um)
+            ZDistance = zDistanceToTargetPlaneFromFocalPlane_um
+        end
+
+        function zpos = calibrate(obj,z_um)
+            zpos=obj.ZDistance+z_um
         end
     end
 end

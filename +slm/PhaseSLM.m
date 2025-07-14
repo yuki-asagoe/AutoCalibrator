@@ -3,5 +3,7 @@ classdef (Abstract) PhaseSLM < handle
         open(obj)
         close(obj)
         apply(obj,phasemap)
+        [ysize,xsize] = getPixelArraySize(obj)
+        pixelpitch_um = getPixelPitch(obj)
     end
 end
