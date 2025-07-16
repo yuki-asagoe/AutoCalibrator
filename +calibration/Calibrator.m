@@ -17,8 +17,8 @@ classdef Calibrator
             obj.ZDistance=zdistanceinfo;
         end
         function [outx,outy,outz] = calibrate(obj,x,y,z)
-            [outx,outy]=obj.XYPosition.calibrate(x,y)
-            outz=obj.ZDistance.calibrate(z)
+            [outx,outy]=obj.XZPosition.calibrate(x,y);
+            outz=obj.ZDistance.calibrate(z);
         end
     end
 end

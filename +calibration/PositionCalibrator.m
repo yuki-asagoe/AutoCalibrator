@@ -30,6 +30,7 @@ classdef PositionCalibrator < handle
         % 逆演算用パラメータを出力しなければいけません
         function saveInCompatibleCSVFormat(obj, filename)
             savedMatrix = zeros(3,2);
+            % 今は逆変換パラメータを出力していない
             % named A, in previous code
             savedMatrix(1,1) = obj.AffineMapMatrix(1,1);
             savedMatrix(1,2) = obj.AffineMapMatrix(1,2);
@@ -37,7 +38,7 @@ classdef PositionCalibrator < handle
             savedMatrix(2,2) = obj.AffineMapMatrix(2,2);
             savedMatrix(3,1) = obj.AffineMapMatrix(1,3);
             savedMatrix(3,2) = obj.AffineMapMatrix(2,3);
-            csvwrite(filename,savedMatrix)
+            csvwrite(filename,savedMatrix);
         end
 
         function [outx,outy] = calibrate(obj,x,y)
@@ -47,7 +48,8 @@ classdef PositionCalibrator < handle
         end
 
         function calibrated = calibratePointArray(obj, points)
-            arguments
+            arguments (Input)
+                obj
                 points (:,2) {mustBeNumeric}
             end
             arguments(Output)
@@ -56,7 +58,7 @@ classdef PositionCalibrator < handle
             calibrated = zeros(size(points));
             for i = 1:size(points,1)
                 [outx,outy] = obj.calibrate(points(i,1),points(i,2));
-                calibrate(i,:)=[outx outy];
+                calibrated(i,:)=[outx outy];
             end
         end
 
@@ -86,7 +88,7 @@ classdef PositionCalibrator < handle
                 outputpositions (:,2)
             end
             numberofposition = size(inputpositions,1);
-            iterationcount=numberofposition/3
+            iterationcount=numberofposition/3;
             affinemapmatrix = zeros(2,3,iterationcount);
 
             for i = 1:iterationcount
@@ -101,14 +103,14 @@ classdef PositionCalibrator < handle
                 xrowcoefficients=linsolve(A,bx);
                 yrowcoefficients=linsolve(A,by);
 
-                affinemapmatrix(1,:) += xrowcoefficients';
-                affinemapmatrix(2,:) += yrowcoefficients';
+                affinemapmatrix(1,:) = affinemapmatrix(1,:) + xrowcoefficients';
+                affinemapmatrix(2,:) = affinemapmatrix(2,:) + yrowcoefficients';
             end
             
             % calculate as average
-            affinemapmatrix /= (iterationcount)
+            affinemapmatrix = affinemapmatrix / iterationcount;
 
-            obj= PositionCalibrator(affinemapmatrix)
+            obj= calibration.PositionCalibrator(affinemapmatrix);
         end
     end
 

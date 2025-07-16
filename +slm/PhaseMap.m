@@ -20,10 +20,10 @@ classdef PhaseMap < handle
         % wavelength : Unit [nm]
         function obj = PhaseMap(xsize,ysize, xpixelpitch_um, ypixelpitch_um, focallength_um, wavelength_nm)
             obj.ModulationArray = zeros(ysize,xsize);
-            obj.XPixelPitch_um=xpixelpitch_um
-            obj.YPixelPitch_um=ypixelpitch_um
-            obj.FocalLength_um=focallength_um
-            obj.WaveLength_nm=wavelength_nm
+            obj.XPixelPitch_um=xpixelpitch_um;
+            obj.YPixelPitch_um=ypixelpitch_um;
+            obj.FocalLength_um=focallength_um;
+            obj.WaveLength_nm=wavelength_nm;
         end
         % x,y,z : Unit [μm]
         % (x,y,z) = (0,0,0) is at center of optical system on focal plane
@@ -37,7 +37,7 @@ classdef PhaseMap < handle
             coordinatesMeshY_um = obj.YPixelPitch_um * (coordinatesMeshY / ysize);
             wavelength_um = obj.WaveLength_nm * 10e-3;
 
-            ModulationArray(:,:) += power * exp( ...
+            obj.ModulationArray(:,:) = obj.ModulationArray(:,:) + power * exp( ...
                 ... % X Y shift
                 -2i*pi * (x_um*coordinatesMeshX_um+y_um*coordinatesMeshY_um)/(wavelength_um*obj.FocalLength_um) + ...
                 ... % Z shift

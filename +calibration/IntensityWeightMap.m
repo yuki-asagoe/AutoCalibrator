@@ -15,6 +15,10 @@ classdef IntensityWeightMap
         function obj = IntensityWeightMap(weightmap,minx,miny,maxx,maxy)
             arguments
                 weightmap (:,:) {mustBeNumeric}
+                minx,
+                miny,
+                maxx,
+                maxy
             end
             obj.WeightMap=weightmap;
             obj.MinX=min([minx,maxx]);
@@ -43,16 +47,16 @@ classdef IntensityWeightMap
             yindex = clip(ysize * (clip(y,obj.MinY,obj.MaxX) - obj.MinY) / (obj.MaxY-obj.MinY),1,ysize);
 
             floorx=floor(xindex);
-            ceilx=ceilx(xindex)
+            ceilx=ceil(xindex);
             partialx = xindex - floorx;
             floory=floor(yindex);
-            ceily=ceily(yindex);
+            ceily=ceil(yindex);
             partialy = yindex - floory;
 
             weight = math.lerp( ...
                 partialy, ...
                 math.lerp(partialx,obj.WeightMap(floory,floorx),obj.WeightMap(floory,ceilx)), ...
-                math.lerp(partialx,obj.WeightMap(ceily,floorx),obj.WeightMap(ceily,ceilx)), ...
+                math.lerp(partialx,obj.WeightMap(ceily,floorx),obj.WeightMap(ceily,ceilx)) ...
             );
         end
 
@@ -60,8 +64,8 @@ classdef IntensityWeightMap
 
     methods (Access = public, Static)
         function obj = loadFrom(filename)
-            savematrix=importdata(filename)
-            obj = IntensityWeightMap(savedMatrix(2:end,:),savematrix(1,1),savematrix(1,2),savematrix(1,3),savematrix(1,4));
+            savematrix=importdata(filename);
+            obj = calibration.IntensityWeightMap(savematrix(2:end,:),savematrix(1,1),savematrix(1,2),savematrix(1,3),savematrix(1,4));
         end
     end
 end

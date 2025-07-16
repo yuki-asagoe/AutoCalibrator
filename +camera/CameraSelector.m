@@ -1,7 +1,7 @@
 classdef CameraSelector < handle
     properties (Access = public)
         DeviceAdaptor string
-        DeviceID integer
+        DeviceID {mustBeInteger}
         DeviceFormat string
     end
     properties (Access = private, Constant = true)

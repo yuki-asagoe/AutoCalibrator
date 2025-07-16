@@ -1,16 +1,18 @@
 function calibrator = getCalibrationInfo(vid, slm, printprogress, focallength_um, wavelength_nm)
-    arguments
+    arguments (Input)
+        vid
         slm slm.PhaseSLM
+        printprogress logical
         focallength_um {mustBeNumeric}
         wavelength_nm {mustBeNumeric}
-        printprogress logical
     end
     arguments(Output)
         calibrator calibration.Calibrator
     end
     start(vid);
 
-    [zdistanceinfo, resultimageofzscan] = calibration.scanFocusAlignZ(vid, slm, 0, 0, ,focallength_um, wavelength_nm);
+    % zscanlistの -40:2:40は適当
+    [zdistanceinfo, ~] = calibration.scanFocusAlignZ(vid, slm, 0, 0, -40:2:40,focallength_um, wavelength_nm);
 
     positioncalibrator = calibration.calculateAffineTransformParameter(vid,slm,zdistanceinfo,focallength_um,wavelength_nm);
 

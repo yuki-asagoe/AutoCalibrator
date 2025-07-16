@@ -1,7 +1,10 @@
 function positioncalibrator = calculateAffineTransformParameter(vid, slm, zdistanceinfo, focallength_um, wavelength_nm)
-    arguments
+    arguments (Input)
+        vid
         slm slm.PhaseSLM
         zdistanceinfo calibration.ZDistanceInfo
+        focallength_um {mustBeNumeric}
+        wavelength_nm {mustBeNumeric}
     end
     arguments (Output)
         positioncalibrator calibration.PositionCalibrator
@@ -16,14 +19,14 @@ function positioncalibrator = calculateAffineTransformParameter(vid, slm, zdista
     [ypixelcount,xpixelcount]=slm.getPixelArraySize();
     pixelpitch_um=slm.getPixelPitch();
 
-    patternscale=1
+    patternscale=1;
 
     trianglepoints = [ ...
         1 0; ...
         0 -1; ...
         -1 0 ...
     ];
-    trianglepoints *= patternscale;
+    trianglepoints = trianglepoints * patternscale;
     phasemap = slm.PhaseMap(xpixelcount,ypixelcount,pixelpitch_um,pixelpitch_um,focallength_um,wavelength_nm);
     for i =1:size(trianglepoints,1)
         point=trianglepoints(i,:);
@@ -50,13 +53,13 @@ function positioncalibrator = calculateAffineTransformParameter(vid, slm, zdista
 
     hexagonpoints = [ ...
         0 1; ...
-        -sqrt(3)/2 0.5; ...
         -sqrt(3)/2 -0.5; ...
-        0 -1; ...
         sqrt(3)/2 -0.5; ...
-        sqrt(3)/2 0.5; ...
+        0 -1; ...
+        -sqrt(3)/2 0.5; ...
+        sqrt(3)/2 0.5 ...
     ];
-    hexagonpoints *= patternscale;
+    hexagonpoints = hexagonpoints * patternscale;
     phasemap = slm.PhaseMap(xpixelcount,ypixelcount,pixelpitch_um,pixelpitch_um,focallength_um,wavelength_nm);
     for i =1:size(hexagonpoints,1)
         point=trianglepoints(i,:);
@@ -83,7 +86,7 @@ end
 
 % inputpointarrayの点それぞれに対応する点をoutpointsetから対応する順で返す
 function sortedrespondpoints = estimateRespondPoints(inputpointarray, outpointset)
-    arguments
+    arguments (Input)
         inputpointarray (:,2) {mustBeNumeric}
         outpointset (:,2) {mustBeNumeric}
     end
@@ -99,10 +102,10 @@ function sortedrespondpoints = estimateRespondPoints(inputpointarray, outpointse
     centeredinputangles=angle(centeredinputpoints(:,1) + centeredinputpoints(:,2) *1i);
     centeredoutputangles=angle(centeredoutpointset(:,1) + centeredoutpointset(:,2) *1i);
 
-    sortedrespondpoints = zeros(size(centeredinputangles),2)
+    sortedrespondpoints = zeros(size(centeredinputangles),2);
 
     for i = 1:size(centeredinputangles)
-        angledifference=normalizeRadian(centeredoutputangles -centeredinputangles(i));
+        angledifference=abs(normalizeRadian(centeredoutputangles -centeredinputangles(i)));
         [~,minindex]=min(angledifference);
         sortedrespondpoints(i,:) = outpointset(minindex,:);
     end
@@ -111,5 +114,5 @@ end
 
 % normalized in [-pi,pi)
 function normalized = normalizeRadian(radian)
-    normalized = x-pi*floor(x/pi+0.5);
+    normalized = radian -2*pi*floor((radian+pi)/2*pi);
 end

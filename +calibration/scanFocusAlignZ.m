@@ -1,13 +1,17 @@
 function [zdistanceinfo,imageatfocalplane] = scanFocusAlignZ(vid,slm, spotx_um, spoty_um, scanzlist_um, focallength_um, wavelength_nm)
-    arguments
+    arguments (Input)
+        vid
         slm slm.PhaseSLM
         % belows :Unit [μm]
         spotx_um {mustBeNumeric}
         spoty_um {mustBeNumeric}
-        scanzlist_um (:) {mustBeNumeric,verifyNotEmpty}
+        scanzlist_um {mustBeNumeric,verifyNotEmpty}
+        focallength_um {mustBeNumeric}
+        wavelength_nm {mustBeNumeric}
     end
     arguments(Output)
         zdistanceinfo calibration.ZDistanceInfo
+        imageatfocalplane (:,:) {mustBeNumeric}
     end
     
     smallestspotarea=Inf;
@@ -24,21 +28,21 @@ function [zdistanceinfo,imageatfocalplane] = scanFocusAlignZ(vid,slm, spotx_um, 
         slm.apply(phasearray)
         pause(0.05)
 
-        image=getdata(vid)
-        grayscaleimage=[]
+        image=getdata(vid);
+        grayscaleimage=[];
         if size(image,3) == 3
-            grayscaleimage = rgb2gray(image)
+            grayscaleimage = rgb2gray(image);
         else
-            grayscaleimage = image
+            grayscaleimage = image;
         end
 
-        brightspot=analysis.image.getbrightspots(grayscaleimage,1)
+        brightspot=analysis.image.getbrightspots(grayscaleimage,1);
 
         % 最も面積の小さい輝点をもって焦点があっているとする
         if brightspot.Area < smallestspotarea
-            smallestspotarea=brightspot.Area
-            zprovidessmallestarea = z_um
-            imageprovidessmallestarea=grayscaleimage
+            smallestspotarea=brightspot.Area;
+            zprovidessmallestarea = z_um;
+            imageprovidessmallestarea=grayscaleimage;
         end
     end
 

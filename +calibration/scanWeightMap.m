@@ -1,8 +1,11 @@
 function weightmap = scanWeightMap(vid,slm,zdistanceinfo,positioncalibrator, focallength_um, wavelength_nm)
-    arguments
+    arguments (Input)
+        vid
         slm slm.PhaseSLM
         zdistanceinfo calibration.ZDistanceInfo
         positioncalibrator calibration.PositionCalibrator
+        focallength_um {mustBeNumeric}
+        wavelength_nm {mustBeNumeric}
     end
     arguments (Output)
         weightmap calibration.IntensityWeightMap
@@ -22,7 +25,7 @@ function weightmap = scanWeightMap(vid,slm,zdistanceinfo,positioncalibrator, foc
     for y = linspace(videoheight*0.1,videoheight*0.9,gridsize)
         for x = linspace(videowidth * 0.1,videoheight*0.9,gridsize)
             phasemap = slm.PhaseMap(xpixelcount,ypixelcount,pixelpitch_um,pixelpitch_um, focallength_um, wavelength_nm);
-            [opticalx opticaly]=positioncalibrator.calibrate(x,y);
+            [opticalx, opticaly]=positioncalibrator.calibrate(x,y);
             opticalz=zdistanceinfo.calibrate(0);
             phasemap.addSpot(opticalx,opticaly,opticalz,1);
 

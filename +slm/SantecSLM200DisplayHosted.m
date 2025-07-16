@@ -1,13 +1,17 @@
 % Display-Hosted SLM
 % Modulation pattern is shown on firgure window
-classdef SantecSLM200DisplayHosted < PhaseSLM
+classdef SantecSLM200DisplayHosted < slm.PhaseSLM
     properties (Access = private)
-        TargetFigure matlab.ui.Figure
+        TargetFigure
         TargetImage
     end
 
     methods (Access = private)
         function obj = SantecSLM200DisplayHosted(targetfigure,targetimage)
+            arguments(Input)
+                targetfigure matlab.ui.Figure
+                targetimage
+            end
             obj.TargetFigure = targetfigure;
             obj.TargetImage = targetimage;
         end
@@ -21,7 +25,7 @@ classdef SantecSLM200DisplayHosted < PhaseSLM
             if isempty(obj.TargetFigure)
                 return
             end
-            obj.TargetImage.CData=SantecSLM200DisplayHosted.encodeForDisplay(phasearray);
+            obj.TargetImage.CData=slm.SantecSLM200DisplayHosted.encodeForDisplay(phasemap);
         end
 
         function close(obj)
@@ -34,18 +38,18 @@ classdef SantecSLM200DisplayHosted < PhaseSLM
         end
 
         function [ysize,xsize]=getPixelArraySize(~)
-            xsize=1920
-            ysize=1200
+            xsize=1920;
+            ysize=1200;
         end
 
         % pixelpitch_um : Unit [μm]
         function pixelpitch_um=getPixelPitch(~)
             % btw pixel size is 7.8
-            pixelpitch_um = 8.0
+            pixelpitch_um = 8.0;
         end
     end
     
-    methods (Access = public)
+    methods (Access = public, Static)
         function obj = createForDisplay(displaynumber)
             monitorPositions=get(groot,"MonitorPositions");
             monitorPos=monitorPositions(displaynumber,:);
@@ -58,17 +62,17 @@ classdef SantecSLM200DisplayHosted < PhaseSLM
                 'InnerPosition', [monitorPos(1),monitorPos(2),monitorPos(3),monitorPos(4)],...
                 'WindowState', 'fullscreen' ...
             );
-            targetAxis=figure('Parent',targetfigure);
-            imagehandle=imshow([],'Parent',targetAxis,'InitialMagnification','fit','Border','tight');
+            targetaxes=axes('Position',[0,0,1,1]);
+            imagehandle=imshow([],'Parent',targetaxes,'InitialMagnification','fit','Border','tight');
 
-            obj = SantecSLM200DisplayHosted(targetfigure,imagehandle);
+            obj = slm.SantecSLM200DisplayHosted(targetfigure,imagehandle);
         end
 
         function slm200encodeddisplayoutput = encodeForDisplay(phasearray)
-            arguments
+            arguments (Input)
                 phasearray (:,:) double
             end
-            arguments
+            arguments (Output)
                 slm200encodeddisplayoutput (:,:,3) uint8
             end
             phasearrayquantizedin10bit = uint16(clip(phasearray * 1023 / (2*pi), 0,1023));
