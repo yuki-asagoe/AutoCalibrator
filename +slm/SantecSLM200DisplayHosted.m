@@ -64,7 +64,9 @@ classdef SantecSLM200DisplayHosted < slm.PhaseSLM
             );
             % Setting fullscreen directly cause margin between screen and
             % window so first set it maximized, then set fullscreen
+            pause(1)
             targetfigure.WindowState='fullscreen';
+            
             imagehandle=imshow(zeros(1200,1920),'InitialMagnification','fit','Border','tight');
 
             obj = slm.SantecSLM200DisplayHosted(targetfigure,imagehandle);
