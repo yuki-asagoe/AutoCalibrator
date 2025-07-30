@@ -1,7 +1,7 @@
 classdef PhaseMap < handle
     properties (Access = private)
         % Center of modulation array should be on optical axis of incident ray
-        ModulationArray (:,:) complex
+        ModulationArray (:,:) {coder.mustBeComplex}
         XPixelPitch_um double
         YPixelPitch_um double
         FocalLength_um double
@@ -33,8 +33,8 @@ classdef PhaseMap < handle
                 (-xsize/2):1:((xsize-1)-xsize/2), ...
                 (-ysize/2):1:((ysize-1)-ysize/2) ...
             );
-            coordinatesMeshX_um = obj.XPixelPitch_um * (coordinatesMeshX / xsize);
-            coordinatesMeshY_um = obj.YPixelPitch_um * (coordinatesMeshY / ysize);
+            coordinatesMeshX_um = obj.XPixelPitch_um * coordinatesMeshX;
+            coordinatesMeshY_um = obj.YPixelPitch_um * coordinatesMeshY;
             wavelength_um = obj.WaveLength_nm * 10e-3;
 
             obj.ModulationArray(:,:) = obj.ModulationArray(:,:) + power * exp( ...
