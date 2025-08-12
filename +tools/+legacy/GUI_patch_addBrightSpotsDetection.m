@@ -15,10 +15,13 @@ end
 
 function onAutoDetectButtonPressed(src,~)
     handles=guidata(src.Parent);
-    [filename, filepath] = uigetfile({'*.tif';'*.tiff';'*.png';'*.jpeg';'*.jpg'});
+    if ~all(isfield(handles,"shiftx"),isfield(handles,"shifty"))
+        return;
+    end
     opticalX=handles.shiftx;
     opticalY=handles.shifty;
     
+    [filename, filepath] = uigetfile({'*.tif';'*.tiff';'*.png';'*.jpeg';'*.jpg'});
     if(filename == 0)
         return;
     end
@@ -33,7 +36,7 @@ function onAutoDetectButtonPressed(src,~)
     opticalPositions=[opticalX,opticalY];
     inImagePotisions=[brightSpots.CenterX,brightSpots.CenterY];
 
-    [sortedInImagePositions, ~]=analysis.image.estimateRespondPointPairs(opticalPositions,inImagePotisions);
+    sortedInImagePositions=analysis.image.estimateRespondPointPairs(opticalPositions,inImagePotisions);
 
     feedbackInImagePositionsToTextFiled(handles,sortedInImagePositions);
     showImageWithBrightSpotMarks(gray2rgb(image));
@@ -75,7 +78,7 @@ function showImageWithBrightSpotMarks(image,brightspots)
         if(y-radius < 1 || sizey < y+radius)
             continue;
         end
-        image(y-radius:y+radius,x-radius:x+radius,:)=[255,255,0];
+        image(y-radius:y+radius,x-radius:x+radius,:)=[255,0,0];
     end
 
     figure;
