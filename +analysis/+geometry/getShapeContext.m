@@ -18,22 +18,30 @@ function shapecontexts=getShapeContext(pointSet,distanceDivisionCount,angleDivis
 
     shapecontexts = zeros(pointCount,distanceDivisionCount,angleDivisionCount);
 
-    pairwiseDistances = pdist(pointSet);
-    averageDistance = mean(pairwiseDistances);
-    pDistMatrix = squareform(pairwiseDistances);
+    % pdist と squareform は toolboxの機能でした
+    % pairwiseDistances = pdist(pointSet);
+    % averageDistance = mean(pairwiseDistances);
+    % pDistMatrix = squareform(pairwiseDistances);
+    pDistMatrix = analysis.geometry.getDistanceMatrix(pointSet);
+    distanceIndices=true(pointCount);
+    distanceIndices(1:(pointCount+1):end)=false;
+    averageDistance = mean(pDistMatrix(distanceIndices));
 
+    normalizedPoints=pointSet./averageDistance;
     normalizedLogScaleDistances = log(pDistMatrix./averageDistance +1);
     maxDistanceLimit = log(2+1); % 正規化してるからpDistMatrix はだいたい[0,2]くらいまでの範囲には収まってるだろうという意図
 
     centerPositionsOfRegion = zeros(distanceDivisionCount,angleDivisionCount,2);
-    differenceDistanceBetweenTwoRegion=maxDistanceLimit/distanceDivisionCount;
-    differenceAngleBetweenTwoRegion=2*pi/angleDivisionCount;
-    [centerDistanceMatrix,centerAngleMatrix] = meshgrid( ...
-        differenceDistanceBetweenTwoRegion*(1:distanceDivisionCount - 0.5), ...
-        differenceAngleBetweenTwoRegion*(1:angleDivisionCount - 0.5) ...
-    );
-    centerPositionsOfRegion(:,:,1) = centerDistanceMatrix .* cos(centerAngleMatrix);
-    centerPositionsOfRegion(:,:,2) = centerDistanceMatrix .* sin(centerAngleMatrix);
+    if(useSoftBinning)
+        differenceDistanceBetweenTwoRegion=maxDistanceLimit/distanceDivisionCount;
+        differenceAngleBetweenTwoRegion=2*pi/angleDivisionCount;
+        [centerAngleMatrix,centerDistanceMatrix] = meshgrid( ...
+            differenceAngleBetweenTwoRegion*((1:angleDivisionCount) - 0.5) ...
+            differenceDistanceBetweenTwoRegion*((1:distanceDivisionCount) - 0.5), ...
+        );
+        centerPositionsOfRegion(:,:,1) = centerDistanceMatrix .* cos(centerAngleMatrix);
+        centerPositionsOfRegion(:,:,2) = centerDistanceMatrix .* sin(centerAngleMatrix);
+    end
 
     for i = 1:pointCount
         for j = 1:pointCount
@@ -47,7 +55,7 @@ function shapecontexts=getShapeContext(pointSet,distanceDivisionCount,angleDivis
             ]);
             
             % 複素数経由してるのは無駄かも　暇があったら普通に計算するように修正するべきか
-            differenceAsComplex=(pointSet(j,1)+1i*pointSet(j,2))-(pointSet(i,1)+1i*pointSet(i,2));
+            differenceAsComplex=(normalizedPoints(j,1)+1i*normalizedPoints(j,2))-(normalizedPoints(i,1)+1i*normalizedPoints(i,2));
             differenceAngle=angle(differenceAsComplex);
 
             angleGroup=min([ ...
@@ -62,19 +70,19 @@ function shapecontexts=getShapeContext(pointSet,distanceDivisionCount,angleDivis
 
             % 以下近傍領域での重みづけ値分散
             [nearRegionsDistGroup,nearRegionsAngleGroup] = meshgrid(-1:1 + distGroup,-1:1 + angleGroup);
-            nearRegionsAngleGroup = mod(nearRegionsAngleGroup,angleDivisionCount)+1;
+            nearRegionsAngleGroup = mod(nearRegionsAngleGroup-1,angleDivisionCount)+1;
             distanceToNearRegion=zeros(3,3);
 
             for regionDistGroupIdx = 1:3
                 for regionAngleGroupIdx = 1:3
                     thisRegionDistGroup=nearRegionsDistGroup(regionDistGroupIdx,regionAngleGroupIdx);
-                    if thisRegionDistGroup <= 0 | thisRegionDistGroup > angleDivisionCount
+                    if thisRegionDistGroup <= 0 | thisRegionDistGroup > distanceDivisionCount
                         distanceToNearRegion(regionDistGroupIdx,regionAngleGroupIdx) = Inf;
                         continue;
                     end
                     thisRegionAngleGroup=nearRegionsAngleGroup(regionDistGroupIdx,regionAngleGroupIdx);
                     centerOfThisRegion=centerPositionsOfRegion(thisRegionDistGroup,thisRegionAngleGroup);
-                    distanceToNearRegion(regionDistGroupIdx,regionAngleGroupIdx) = pdist([pointSet(i,:),centerOfThisRegion]);
+                    distanceToNearRegion(regionDistGroupIdx,regionAngleGroupIdx) = math.euclideanDistance(normalizedPoints(j,:)-normalizedPoints(i,:),centerOfThisRegion);
                 end
             end
 
@@ -84,12 +92,12 @@ function shapecontexts=getShapeContext(pointSet,distanceDivisionCount,angleDivis
             for regionDistGroupIdx = 1:3
                 for regionAngleGroupIdx = 1:3
                     thisRegionDistGroup=nearRegionsDistGroup(regionDistGroupIdx,regionAngleGroupIdx);
-                    if thisRegionDistGroup <= 0 | thisRegionDistGroup > angleDivisionCount
+                    if thisRegionDistGroup <= 0 | thisRegionDistGroup > distanceDivisionCount
                         continue;
                     end
                     thisRegionAngleGroup=nearRegionsAngleGroup(regionDistGroupIdx,regionAngleGroupIdx);
                     shapecontext(i,thisRegionDistGroup,thisRegionAngleGroup) = ...
-                        shapecontext(i,thisRegionDistGroup,thisRegionAngleGroup) + weight(regionDistGroupIdx,regionAngleGroupIdx);
+                        shapecontext(i,thisRegionDistGroup,thisRegionAngleGroup) + normalizeWeight(regionDistGroupIdx,regionAngleGroupIdx);
                 end
             end
         end

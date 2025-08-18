@@ -16,27 +16,18 @@ classdef BrightSpot
         end
     end
     methods (Access = public, Static)
-        function obj = getFromImageAndPixels(grayscaleimage, pixels)
+        function obj = getFromImageAndPixels(grayscaleimage, pixelsLinearIdx)
+            % 効率の都合で線形インデクスを使った方法に直したが添え字を使う実装もした方がいいか
             arguments
                 grayscaleimage (:,:) {mustBeNumeric}
-                % column 1 is x
-                % column 2 is y
-                pixels (:,2) {mustBeInteger}
+                pixelsLinearIdx (:,1) {mustBeInteger}
             end
-            sumvalue=0;
-            centerx=0;
-            centery=0;
-            pixelcount=size(pixels,1);
-            for i = 1:pixelcount
-                x=pixels(i,1);
-                y=pixels(i,2);
-                value = grayscaleimage(y,x);
-                sumvalue=sumavalue+value;
-                centerx=centerx+value*x;
-                centery=centery+value*y;
-            end
-            centerx=centerx/sumvalue;
-            centery=centery/sumvalue;
+            [pixelsY,pixelsX]=ind2sub(size(grayscaleimage),pixelsLinearIdx);
+            pixelcount=size(pixelsLinearIdx,2);
+            values=grayscaleimage(pixelsLinearIdx);
+            sumvalue=sum(values);
+            centerx=dot(pixelsX,values)/sumvalue;
+            centery=dot(pixelsY,values)/sumvalue;
 
             obj = BrightSpot(centerx,centery,pixelcount,sumvalue);
         end
