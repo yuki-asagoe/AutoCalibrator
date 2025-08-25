@@ -11,7 +11,7 @@ function chiSquaredDistance=getChiSquaredDistance(dataA,dataB)
         dataA {mustBeNumeric}
         dataB {mustBeNumeric}
     end
-    assert(size(dataA) == size(dataB));
+    assert(all(size(dataA) == size(dataB)));
 
     % 定義通りにやるならこういう式
     % chiSquaredDistance = sum(((dataA-dataB).^2)./(dataA+dataB),'all')

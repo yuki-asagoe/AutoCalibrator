@@ -8,7 +8,7 @@ function sortedEstimatedPoints=estimateRespondPointPairs(basePoints,estimatedPoi
         sortedEstimatedPoints (:,2) {mustBeNumeric}
     end
 
-    assert(size(basePoints) == size(estimatedPoints));
+    assert(all(size(basePoints) == size(estimatedPoints)));
 
     pointCount = size(basePoints,1);
 
@@ -21,26 +21,24 @@ function sortedEstimatedPoints=estimateRespondPointPairs(basePoints,estimatedPoi
 
     for i=1:pointCount
         for j=1:pointCount
-            if i == j
-                chiSquaredDistances=Inf;
-                continue;
-            end
-            chiSquaredDistances(i,j)=analysis.statistics.getChiSquaredDistance(shapeContextOfBasePoints(i),shapeContextOfEstimatedPoints(j));
+            chiSquaredDistances(i,j)=analysis.statistics.getChiSquaredDistance(shapeContextOfBasePoints(i,:,:),shapeContextOfEstimatedPoints(j,:,:));
         end
     end
     similarity = rescale(1./chiSquaredDistances);
 
     % 残り類似度のうちから最大の類似度を与えるペアから順番に対応付けしていきます
-    sortIndexArray=zeros(pointCount);
+    sortIndexArray=zeros(1,pointCount);
     for i=1:pointCount
         [maxSimilarities,basePointIdxProvidingMaxSimilarity] = max(similarity);
         [~,estimatedPointIdxProvidingMaxSimilarity] = max(maxSimilarities);
 
+        selectedIdxOfEstimated=estimatedPointIdxProvidingMaxSimilarity;
+        selectedIdxOfBase=basePointIdxProvidingMaxSimilarity(selectedIdxOfEstimated);
         % 対応付けが完了したのでその点の関連する類似度を最小化している
-        similarity(basePointIdxProvidingMaxSimilarity,:) = -Inf;
-        similarity(:,estimatedPointIdxProvidingMaxSimilarity) = -Inf;
+        similarity(selectedIdxOfBase,:) = -Inf;
+        similarity(:,selectedIdxOfBase) = -Inf;
 
-        sortIndexArray(estimatedPointIdxProvidingMaxSimilarity)=basePointIdxProvidingMaxSimilarity;
+        sortIndexArray(estimatedPointIdxProvidingMaxSimilarity)=selectedIdxOfBase;
     end
     sortedEstimatedPoints=estimatedPoints(sortIndexArray);
 end

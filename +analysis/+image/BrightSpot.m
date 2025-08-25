@@ -18,7 +18,7 @@ classdef BrightSpot
     methods (Access = public, Static)
         function obj = getFromImageAndPixels(grayscaleimage, pixelsLinearIdx)
             % 効率の都合で線形インデクスを使った方法に直したが添え字を使う実装もした方がいいか
-            arguments
+            arguments(Input)
                 grayscaleimage (:,:) {mustBeNumeric}
                 pixelsLinearIdx (:,1) {mustBeInteger}
             end
@@ -26,10 +26,10 @@ classdef BrightSpot
             pixelcount=size(pixelsLinearIdx,2);
             values=grayscaleimage(pixelsLinearIdx);
             sumvalue=sum(values);
-            centerx=dot(pixelsX,values)/sumvalue;
-            centery=dot(pixelsY,values)/sumvalue;
+            centerx=dot(pixelsX,double(values))/sumvalue;
+            centery=dot(pixelsY,double(values))/sumvalue;
 
-            obj = BrightSpot(centerx,centery,pixelcount,sumvalue);
+            obj = analysis.image.BrightSpot(centerx,centery,pixelcount,sumvalue);
         end
     end
 end

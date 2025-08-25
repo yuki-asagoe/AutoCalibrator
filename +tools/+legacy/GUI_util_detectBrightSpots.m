@@ -1,20 +1,5 @@
-function patchedGUI = GUI_patch_addBrightSpotsDetection(calibrationGUI)
-    arguments(Input)
-        calibrationGUI matlab.ui.Figure
-    end
-    
-    uibutton(...
-        calibrationGUI, ...
-        "Position",[0,0,120,22], ...
-        "Text","Patch:Auto Detect", ...
-        "ButtonPushedFcn", @onAutoDetectButtonPressed ...
-    );
-
-    patchedGUI = calibrationGUI;
-end
-
-function onAutoDetectButtonPressed(src,~)
-    handles=guidata(src.Parent);
+function GUI_util_detectBrightSpots(calibGUI)
+    handles=guidata(calibGUI);
     if ~all(isfield(handles,"shiftx"),isfield(handles,"shifty"))
         return;
     end

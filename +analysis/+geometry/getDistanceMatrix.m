@@ -2,7 +2,7 @@ function distMat = getDistanceMatrix(pointSet)
     arguments(Input)
         pointSet (:,2) {mustBeNumeric}
     end
-    pointCount=size(pointSet,2);
+    pointCount=size(pointSet,1);
     distMat = zeros(pointCount,pointCount);
     for i=1:pointCount
         for j=(i+1):pointCount
