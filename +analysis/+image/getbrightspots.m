@@ -10,8 +10,11 @@ function brightspots = getbrightspots(grayscaleimage, maxoutputcount)
         brightspots=[];
         return
     end
-    thresh=adaptthresh(grayscaleimage, 0.3,'Statistic','gaussian');
-    binaryimage=imbinarize(grayscaleimage,thresh);
+    thresh=adaptthresh(grayscaleimage, 0.0001,'Statistic','mean');
+    binaryimg_mean=imbinarize(grayscaleimage,thresh);
+    thresh=adaptthresh(grayscaleimage, 0.0001,'Statistic','gaussian');
+    binaryimg_gauss=imbinarize(grayscaleimage,thresh);
+    binaryimage=binaryimg_mean & binaryimg_gauss;
     pixelgroups=bwconncomp(binaryimage,8);
 
     % total amount of each pixel value in each connected pixel group

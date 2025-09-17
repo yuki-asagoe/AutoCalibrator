@@ -23,7 +23,7 @@ classdef BrightSpot
                 pixelsLinearIdx (:,1) {mustBeInteger}
             end
             [pixelsY,pixelsX]=ind2sub(size(grayscaleimage),pixelsLinearIdx);
-            pixelcount=size(pixelsLinearIdx,2);
+            pixelcount=size(pixelsLinearIdx,1);
             values=grayscaleimage(pixelsLinearIdx);
             sumvalue=sum(values);
             centerx=dot(pixelsX,double(values))/sumvalue;
