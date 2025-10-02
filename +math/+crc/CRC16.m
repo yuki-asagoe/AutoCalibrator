@@ -12,19 +12,20 @@ classdef CRC16
     
         function crc= calculate(obj,data)
             arguments(Input)
+                obj
                 data (1,:) uint8
             end
             arguments(Output)
                 crc uint16
             end
             value=obj.InitialValue;
-            for i = 1:size(data)
-                value=bitxor(value,data(i));
+            for i = 1:size(data,2)
+                value=bitxor(value,uint16(data(i)));
                 for j=1:8
                     if bitand(value,1) == 1
-                        value=bitxor(bitsrl(value,1),obj.ReversePolynomial);
+                        value=bitxor(bitshift(value,-1),obj.ReversePolynomial);
                     else
-                        value=bitsrl(value,1);
+                        value=bitshift(value,-1);
                     end
                 end
             end
