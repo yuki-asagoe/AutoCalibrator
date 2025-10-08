@@ -25,19 +25,13 @@ classdef PositionCalibrator < handle
 
         % Save in csv fomat that has been used by previous code : calibrationGUI
         %
-        % もとのプログラムがなぜか カメラ画像座標系 -> 光学座標系 の変換を
-        % 全部アフィン変換の逆変換で扱う設計になってるっぽいから
-        % 逆演算用パラメータを出力しなければいけません
-        function saveInCompatibleCSVFormat(obj, filename)
-            savedMatrix = zeros(3,2);
-            % 今は逆変換パラメータを出力していない
-            % named A, in previous code
-            savedMatrix(1,1) = obj.AffineMapMatrix(1,1);
-            savedMatrix(1,2) = obj.AffineMapMatrix(1,2);
-            savedMatrix(2,1) = obj.AffineMapMatrix(2,1);
-            savedMatrix(2,2) = obj.AffineMapMatrix(2,2);
-            savedMatrix(3,1) = obj.AffineMapMatrix(1,3);
-            savedMatrix(3,2) = obj.AffineMapMatrix(2,3);
+        % もとのプログラムが カメラ画像座標系 -> 光学座標系 の変換を
+        % 全部アフィン変換の逆変換で扱う設計になってるっぽい
+        % (つまり扱ってるパラメータは 光学座標系 -> カメラ座標系 の変換用パラメータ)
+        function saveByCompatibleCSVFormat(obj, filename)
+            % 逆演算用パラメータを出力する
+            invmatrix=calibration.PositionCalibrator.getInverseTransformParameter(obj.AffineMapMatrix);
+            savedMatrix=[invmatrix(1:2,1:2);invmatrix(1:2,3)'];
             csvwrite(filename,savedMatrix);
         end
 
@@ -71,12 +65,12 @@ classdef PositionCalibrator < handle
         end
 
         % 上述の通りもとのプログラムのパラメータは逆演算なので
-        function obj = loadInCompatibleCSVFormatFrom(filename)
+        function obj = loadByCompatibleCSVFormatFrom(filename)
             loadedMatrix = importdata(filename);
-            obj= PositionCalibrator([ ...
-                loadedMatrix(1,1) loadedMatrix(1,2) loadedMatrix(3,1); ...
-                loadedMatrix(2,1) loadedMatrix(2,2) loadedMatrix(3,2) ...
-            ]);
+            reformedMatrix=[loadedMatrix(1:2,1:2),loadedMatrix(3,1:2)'];
+            obj= PositionCalibrator( ...
+                calibration.PositionCalibrator.getInverseTransformParameter(reformedMatrix) ...
+            );
         end
 
         function obj=adjust(inputpositions,outputpositions)
@@ -114,4 +108,32 @@ classdef PositionCalibrator < handle
         end
     end
 
+    methods(Access = private, Static)
+        % アフィン変換の逆変換パラメータを計算
+        function invtransformparam = getInverseTransformParameter(affinematrix)
+            arguments(Input)
+                affinematrix (2,3) {mustBeNumeric}
+            end
+            arguments(Output)
+                invtransformparam (2,3) {mustBeNumeric}
+            end
+            invtransformparam = zeros(2,3);
+            % named A, in previous code
+
+            A = affinematrix(1,1);
+            B = affinematrix(1,2);
+            C = affinematrix(2,1);
+            D = affinematrix(2,2);
+            tx = affinematrix(1,3);
+            ty = affinematrix(2,3);
+
+            % 逆演算用パラメータを出力する
+            invtransformparam(1,1) = D/(A*D-B*C);
+            invtransformparam(1,2) = B/(B*C-A*D);
+            invtransformparam(2,1) = C/(B*C-A*D);
+            invtransformparam(2,2) = A/(A*D-B*C);
+            invtransformparam(1,3) = -invtransformparam(1,1)*tx-invtransformparam(2,1)*ty;
+            invtransformparam(2,3) = -invtransformparam(1,2)*tx-invtransformparam(2,2)*ty;
+        end
+    end
 end
