@@ -36,9 +36,9 @@ classdef PositionCalibrator < handle
         end
 
         function [outx,outy] = calibrate(obj,x,y)
-            outPos=obj.AffineMapMatrix(1:2,1:2) * [x;y] + obj.AffineMapMatrix(1:2,3);
-            outx=outPos(1,1);
-            outy=outPos(2,1);
+            outPos=obj.AffineMapMatrix(:,1:2) * [x;y] + obj.AffineMapMatrix(1:2,3);
+            outx=outPos(1);
+            outy=outPos(2);
         end
 
         function calibrated = calibratePointArray(obj, points)
@@ -61,14 +61,14 @@ classdef PositionCalibrator < handle
     methods (Access = public, Static)
         function obj = loadFrom(filename)
             loadedMatrix= importdata(filename);
-            obj = PositionCalibrator(loadedMatrix);
+            obj = calibration.PositionCalibrator(loadedMatrix);
         end
 
         % 上述の通りもとのプログラムのパラメータは逆演算なので
         function obj = loadByCompatibleCSVFormatFrom(filename)
             loadedMatrix = importdata(filename);
             reformedMatrix=[loadedMatrix(1:2,1:2),loadedMatrix(3,1:2)'];
-            obj= PositionCalibrator( ...
+            obj= calibration.PositionCalibrator( ...
                 calibration.PositionCalibrator.getInverseTransformParameter(reformedMatrix) ...
             );
         end
@@ -132,8 +132,8 @@ classdef PositionCalibrator < handle
             invtransformparam(1,2) = B/(B*C-A*D);
             invtransformparam(2,1) = C/(B*C-A*D);
             invtransformparam(2,2) = A/(A*D-B*C);
-            invtransformparam(1,3) = -invtransformparam(1,1)*tx-invtransformparam(2,1)*ty;
-            invtransformparam(2,3) = -invtransformparam(1,2)*tx-invtransformparam(2,2)*ty;
+            invtransformparam(1,3) = -invtransformparam(1,1)*tx-invtransformparam(1,2)*ty;
+            invtransformparam(2,3) = -invtransformparam(2,1)*tx-invtransformparam(2,2)*ty;
         end
     end
 end

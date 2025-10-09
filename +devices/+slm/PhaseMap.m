@@ -28,6 +28,13 @@ classdef PhaseMap < handle
         % x,y,z : Unit [μm]
         % (x,y,z) = (0,0,0) is at center of optical system on focal plane
         function addSpot(obj,x_um,y_um,z_um,power)
+            arguments(Input)
+                obj
+                x_um {mustBeNumeric}
+                y_um {mustBeNumeric}
+                z_um {mustBeNumeric}
+                power = 1
+            end
             [ysize,xsize] = size(obj.ModulationArray);
             [coordinatesMeshX,coordinatesMeshY] = meshgrid( ...
                 (-xsize/2):1:((xsize-1)-xsize/2), ...

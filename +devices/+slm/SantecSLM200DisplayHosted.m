@@ -1,6 +1,6 @@
-% Display-Hosted SLM
+:% Display-Hosted SLM
 % Modulation pattern is shown on firgure window
-classdef SantecSLM200DisplayHosted < slm.PhaseSLM
+classdef SantecSLM200DisplayHosted < devices.slm.PhaseSLM
     properties (Access = private)
         TargetFigure
         TargetImage
@@ -25,7 +25,7 @@ classdef SantecSLM200DisplayHosted < slm.PhaseSLM
             if isempty(obj.TargetFigure)
                 return
             end
-            obj.TargetImage.CData=slm.SantecSLM200DisplayHosted.encodeForDisplay(phasemap);
+            obj.TargetImage.CData=devices.slm.SantecSLM200DisplayHosted.encodeForDisplay(phasemap);
         end
 
         function close(obj)
@@ -69,7 +69,7 @@ classdef SantecSLM200DisplayHosted < slm.PhaseSLM
             
             imagehandle=imshow(zeros(1200,1920),'InitialMagnification','fit','Border','tight');
 
-            obj = slm.SantecSLM200DisplayHosted(targetfigure,imagehandle);
+            obj = devices.slm.SantecSLM200DisplayHosted(targetfigure,imagehandle);
         end
 
         function slm200encodeddisplayoutput = encodeForDisplay(phasearray)
