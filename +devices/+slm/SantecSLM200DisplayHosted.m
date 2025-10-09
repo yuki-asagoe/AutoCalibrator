@@ -1,4 +1,4 @@
-:% Display-Hosted SLM
+% Display-Hosted SLM
 % Modulation pattern is shown on firgure window
 classdef SantecSLM200DisplayHosted < devices.slm.PhaseSLM
     properties (Access = private)
@@ -79,7 +79,7 @@ classdef SantecSLM200DisplayHosted < devices.slm.PhaseSLM
             arguments (Output)
                 slm200encodeddisplayoutput (:,:,3) uint8
             end
-            phasearrayquantizedin10bit = uint16(clip(phasearray * 1023 / (2*pi), 0,1023));
+            phasearrayquantizedin10bit = uint16(min(max(floor(math.normalizePhase(phasearray) * 1024 / (2*pi)), 0),1023));
 
             R = uint8(bitshift(bitand(phasearrayquantizedin10bit,uint16(0b1110000000)),-2));
             G = uint8(bitshift(bitand(phasearrayquantizedin10bit,uint16(0b0001110000)),1));
