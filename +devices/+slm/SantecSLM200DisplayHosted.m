@@ -77,6 +77,7 @@ classdef SantecSLM200DisplayHosted < devices.slm.PhaseSLM
                 phasearray (:,:) double
             end
             arguments (Output)
+                % R G B
                 slm200encodeddisplayoutput (:,:,3) uint8
             end
             phasearrayquantizedin10bit = uint16(min(max(floor(math.normalizePhase(phasearray) * 1024 / (2*pi)), 0),1023));
@@ -90,6 +91,22 @@ classdef SantecSLM200DisplayHosted < devices.slm.PhaseSLM
             slm200encodeddisplayoutput(:,:,1) = R;
             slm200encodeddisplayoutput(:,:,2) = G;
             slm200encodeddisplayoutput(:,:,3) = B;
+        end
+        % encodeForDisplayの逆関数
+        function phasearray = decodeFromDisplay(dataEncodedForDisplay)
+            arguments(Input)
+                dataEncodedForDisplay (:,:,3) uint8
+            end
+            arguments(Output)
+                phasearray (;,;) double
+            end
+            R = dataEncodedForDisplay(:,:,1);
+            G = dataEncodedForDisplay(:,:,2);
+            B = dataEncodedForDisplay(:,:,3);
+            phasearrayquantizedin10bit = bitshift(uint16(bitand(R,uint8(0b11100000))),2);
+            phasearrayquantizedin10bit = bitxor(phasearrayquantizedin10bit, bitshift(uint16(bitand(G,uint8(0b11100000))),-1) );
+            phasearrayquantizedin10bit = bitxor(phasearrayquantizedin10bit, bitshift(uint16(bitand(B,uint8(0b11110000))),-4) );
+            phasearray = (phasearrayquantizedin10bit / 1024) * 2 * pi;
         end
     end
 end
