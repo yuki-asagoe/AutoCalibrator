@@ -19,7 +19,7 @@ classdef PhaseMap < handle
         % wave length of modulated light ray
         % wavelength : Unit [nm]
         function obj = PhaseMap(xsize,ysize, xpixelpitch_um, ypixelpitch_um, focallength_um, wavelength_nm)
-            obj.ModulationArray = zeros(ysize,xsize);
+            obj.ModulationArray = complex(zeros(ysize,xsize),0);
             obj.XPixelPitch_um=xpixelpitch_um;
             obj.YPixelPitch_um=ypixelpitch_um;
             obj.FocalLength_um=focallength_um;
