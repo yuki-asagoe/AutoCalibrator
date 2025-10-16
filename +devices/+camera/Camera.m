@@ -1,4 +1,4 @@
-classdef Camera
+classdef Camera < handle
     methods(Abstract)
         open(obj)
         image = take(obj)
