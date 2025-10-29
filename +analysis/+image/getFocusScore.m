@@ -1,15 +1,15 @@
-function focusScore = getFocusScore(grayscaleimage)
+function focusScore = getFocusScore(image)
     arguments(Input)
-        grayscaleimage (:,:) uint8
+        image (:,:) {mustBeNumeric}
     end
     arguments(Output)
         focusScore double
     end
     % 輝点検出と同じように二値化して背景の平均輝度と輝点の平均輝度を比較する
     averagefilter=fspecial("average",3);
-    filteredimg=imfilter(grayscaleimage,averagefilter);
+    filteredimg=imfilter(image,averagefilter);
     thresh=adaptthresh(filteredimg, 0.01,'Statistic','gaussian');
     binaryimg=imbinarize(filteredimg,thresh);
     
-    focusScore=mean(grayscaleimage(binaryimg),"all")/mean(grayscaleimage(~binaryimg),"all");
+    focusScore=mean(image(binaryimg),"all")/mean(image(~binaryimg),"all");
 end
