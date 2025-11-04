@@ -1,10 +1,15 @@
-function positioncalibrator = scanAffineTransformParameter(vid, slm, zdistanceinfo, focallength_um, wavelength_nm)
+function positioncalibrator = scanAffineTransformParameter(camera, slm, zdistanceinfo, focallength_um, wavelength_nm, patternscale, centerpoints)
     arguments (Input)
-        vid
+        camera devices.camera.Camera
         slm slm.PhaseSLM
         zdistanceinfo calibration.ZDistanceInfo
         focallength_um {mustBeNumeric}
         wavelength_nm {mustBeNumeric}
+        % キャリブレーションパターンの大きさ係数
+        patternscale {mustBeNumeric} = 30;
+        % キャリブレーションパターンの中心
+        centerpoints (1,2) {mustBeNumeric} = [0,0]
+
     end
     arguments (Output)
         positioncalibrator calibration.PositionCalibrator
@@ -18,8 +23,6 @@ function positioncalibrator = scanAffineTransformParameter(vid, slm, zdistancein
     
     [ypixelcount,xpixelcount]=slm.getPixelArraySize();
     pixelpitch_um=slm.getPixelPitch();
-
-    patternscale=1;
 
     trianglepoints = [ ...
         1 0; ...
@@ -36,7 +39,7 @@ function positioncalibrator = scanAffineTransformParameter(vid, slm, zdistancein
     slm.apply(phasearray);
     pause(0.05);
 
-    image = getdata(vid);
+    image = camera.take();
     if size(image,3) == 3
         image= rgb2gray(image);
     end
@@ -69,7 +72,7 @@ function positioncalibrator = scanAffineTransformParameter(vid, slm, zdistancein
     slm.apply(phasearray);
     pause(0.05);
 
-    image = getdata(vid);
+    image = camera.take();
     if size(image,3) == 3
         image= rgb2gray(image);
     end
