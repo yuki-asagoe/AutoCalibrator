@@ -1,4 +1,4 @@
-classdef TriggerMode < uint8
+classdef TriggerMode < int8
     enumeration
         Internal (0)
         External (1)
@@ -9,7 +9,7 @@ classdef TriggerMode < uint8
     end
     methods(Access = public)
         function code=get(obj)
-            code = uint8(obj);
+            code = double(int8(obj));
         end
         function set(obj)
             SetTriggerMode(obj.get);

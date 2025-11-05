@@ -1,4 +1,4 @@
-classdef AcquisitionMode < uint8
+classdef AcquisitionMode < int8
     enumeration
         SingleScan (1)
         Accumulate (2)
@@ -8,7 +8,7 @@ classdef AcquisitionMode < uint8
     end
     methods(Access = public)
         function code=get(obj)
-            code = uint8(obj);
+            code = double(int8(obj));
         end
         function set(obj)
             SetAcquisitionMode(obj.get);
