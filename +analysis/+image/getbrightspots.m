@@ -1,6 +1,6 @@
-function brightspots = getbrightspots(grayscaleimage, maxoutputcount)
+function brightspots = getbrightspots(image, maxoutputcount)
     arguments (Input)
-        grayscaleimage (:,:) uint8
+        image (:,:) {mustBeNumeric}
         maxoutputcount
     end
     arguments (Output)
@@ -11,7 +11,7 @@ function brightspots = getbrightspots(grayscaleimage, maxoutputcount)
         return
     end
     averagefilter=fspecial("average",3);
-    img=imfilter(grayscaleimage,averagefilter);
+    img=imfilter(image,averagefilter);
     thresh=adaptthresh(img, 0.01,'Statistic','gaussian');
     binaryimg_gauss=imbinarize(img,thresh);
     pixelgroups=bwconncomp(binaryimg_gauss,8);
@@ -19,13 +19,13 @@ function brightspots = getbrightspots(grayscaleimage, maxoutputcount)
     % total amount of each pixel value in each connected pixel group
     groupValueSum=zeros(pixelgroups.NumObjects);
     for i = 1:pixelgroups.NumObjects
-        groupValueSum(i)=sum(grayscaleimage(pixelgroups.PixelIdxList{i}));
+        groupValueSum(i)=sum(image(pixelgroups.PixelIdxList{i}));
     end
     [~,sortingarray]=sort(groupValueSum,'descend');
 
     spots = [];
     for i = 1:min([maxoutputcount pixelgroups.NumObjects])
-        spots = [spots analysis.image.BrightSpot.getFromImageAndPixels(grayscaleimage,pixelgroups.PixelIdxList{sortingarray(i)})];
+        spots = [spots analysis.image.BrightSpot.getFromImageAndPixels(image,pixelgroups.PixelIdxList{sortingarray(i)})];
     end
     brightspots= spots;
 end

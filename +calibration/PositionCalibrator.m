@@ -56,6 +56,7 @@ classdef PositionCalibrator < handle
             end
         end
 
+
     end
 
     methods (Access = public, Static)
@@ -71,6 +72,27 @@ classdef PositionCalibrator < handle
             obj= calibration.PositionCalibrator( ...
                 calibration.PositionCalibrator.getInverseTransformParameter(reformedMatrix) ...
             );
+        end
+
+        % devices.slm.PhaseMap で使用する用に読み込みをします
+        % calibration_GUI
+        % でえられるパラメータはslmの形状や波長焦点距離みたいなパラメータ全部込みの変換パラメータになっているのであとからそれらを調節できるようにするため逆算して元のパラメータを出さないといけない
+        function obj = loadByCompatibleCSVFormatForNormalPhaseMapFrom(filename, wavelength_um, focallength_um, slmxpixelsize, slmypixelsize, slmxpixelpitch_um, slmypixelpitch_um)
+            arguments(Input)
+                filename
+                wavelength_um
+                focallength_um
+                slmxpixelsize = 1920
+                slmypixelsize = 1200
+                slmxpixelpitch_um = 8
+                slmypixelpitch_um = 8
+            end
+            loadedMatrix = importdata(filename);
+            reformedMatrix = [loadedMatrix(1:2,1:2),loadedMatrix(3,1:2)'];
+            affineMatrix = calibration.PositionCalibrator.getInverseTransformParameter(reformedMatrix);
+            affineMatrix(1,:) = affineMatrix(1,:) * (wavelength_um * focallength_um) * (slmxpixelsize / slmxpixelpitch_um);
+            affineMatrix(2,:) = affineMatrix(2,:) * (wavelength_um * focallength_um) * (slmypixelsize / slmypixelpitch_um);
+            obj = calibration.PositionCalibrator(affineMatrix);
         end
 
         function obj=adjust(inputpositions,outputpositions)
