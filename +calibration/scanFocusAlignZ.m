@@ -1,4 +1,4 @@
-function [zdistanceinfo,imageatfocalplane] = scanFocusAlignZ(camera,slm, spotx_um, spoty_um, scanzlist_um, focallength_um, wavelength_nm)
+function [zdistanceinfo,imageatfocalplane,scores] = scanFocusAlignZ(camera,slm, spotx_um, spoty_um, scanzlist_um, focallength_um, wavelength_nm)
     arguments (Input)
         camera devices.camera.Camera
         slm slm.PhaseSLM
@@ -12,6 +12,7 @@ function [zdistanceinfo,imageatfocalplane] = scanFocusAlignZ(camera,slm, spotx_u
     arguments(Output)
         zdistanceinfo calibration.ZDistanceInfo
         imageatfocalplane (:,:) {mustBeNumeric}
+        scores {mustBeNumeric}
     end
     
     scores=zeros(size(scanzlist_um));

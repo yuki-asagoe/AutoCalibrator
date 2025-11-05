@@ -1,6 +1,6 @@
-function calibrator = getCalibrationInfo(vid, slm, printprogress, focallength_um, wavelength_nm)
+function calibrator = getCalibrationInfo(camera, slm, printprogress, focallength_um, wavelength_nm)
     arguments (Input)
-        vid
+        camera
         slm slm.PhaseSLM
         printprogress logical
         focallength_um {mustBeNumeric}
@@ -9,16 +9,16 @@ function calibrator = getCalibrationInfo(vid, slm, printprogress, focallength_um
     arguments(Output)
         calibrator calibration.Calibrator
     end
-    start(vid);
+    start(camera);
 
     % zscanlistの -40:2:40は適当
-    [zdistanceinfo, ~] = calibration.scanFocusAlignZ(vid, slm, 0, 0, -40:2:40,focallength_um, wavelength_nm);
+    [zdistanceinfo, ~] = calibration.scanFocusAlignZ(camera, slm, 0, 0, -40:2:40,focallength_um, wavelength_nm);
 
-    positioncalibrator = calibration.scanAffineTransformParameter(vid,slm,zdistanceinfo,focallength_um,wavelength_nm);
+    positioncalibrator = calibration.scanAffineTransformParameter(camera,slm,zdistanceinfo,focallength_um,wavelength_nm);
 
-    weightmap = calibration.scanWeightMap(vid,slm,zdistanceinfo,positioncalibrator,focallength_um,wavelength_nm);
+    weightmap = calibration.scanWeightMap(camera,slm,zdistanceinfo,positioncalibrator,focallength_um,wavelength_nm);
 
-    stop(vid);
+    stop(camera);
 
     calibrator = calibration.Calibrator(zdistanceinfo,positioncalibrator,weightmap);
 end

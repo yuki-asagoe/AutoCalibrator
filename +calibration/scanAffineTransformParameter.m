@@ -29,7 +29,7 @@ function positioncalibrator = scanAffineTransformParameter(camera, slm, zdistanc
         0 -1; ...
         -1 0 ...
     ];
-    trianglepoints = trianglepoints * patternscale;
+    trianglepoints = trianglepoints * patternscale + centerpoints;
     phasemap = slm.PhaseMap(xpixelcount,ypixelcount,pixelpitch_um,pixelpitch_um,focallength_um,wavelength_nm);
     for i =1:size(trianglepoints,1)
         point=trianglepoints(i,:);
@@ -62,7 +62,7 @@ function positioncalibrator = scanAffineTransformParameter(camera, slm, zdistanc
         -sqrt(3)/2 0.5; ...
         sqrt(3)/2 0.5 ...
     ];
-    hexagonpoints = hexagonpoints * patternscale;
+    hexagonpoints = hexagonpoints * patternscale + centerpoints;
     phasemap = slm.PhaseMap(xpixelcount,ypixelcount,pixelpitch_um,pixelpitch_um,focallength_um,wavelength_nm);
     for i =1:size(hexagonpoints,1)
         point=trianglepoints(i,:);
