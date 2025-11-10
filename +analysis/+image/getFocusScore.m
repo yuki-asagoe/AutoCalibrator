@@ -7,9 +7,14 @@ function focusScore = getFocusScore(image)
     end
     % 輝点検出と同じように二値化して背景の平均輝度と輝点の平均輝度を比較する
     averagefilter=fspecial("average",3);
-    filteredimg=imfilter(image,averagefilter);
+    filteredimg=rescale(imfilter(image,averagefilter));
     thresh=adaptthresh(filteredimg, 0.01,'Statistic','gaussian');
     binaryimg=imbinarize(filteredimg,thresh);
+    
+    if ~any(binaryimg,"all")
+        focusScore = 0;
+        return;
+    end
     
     focusScore=mean(image(binaryimg),"all")/mean(image(~binaryimg),"all");
 end

@@ -90,8 +90,8 @@ classdef PositionCalibrator < handle
             loadedMatrix = importdata(filename);
             reformedMatrix = [loadedMatrix(1:2,1:2),loadedMatrix(3,1:2)'];
             affineMatrix = calibration.PositionCalibrator.getInverseTransformParameter(reformedMatrix);
-            affineMatrix(1,:) = affineMatrix(1,:) * (wavelength_um * focallength_um) * (slmxpixelsize / slmxpixelpitch_um);
-            affineMatrix(2,:) = affineMatrix(2,:) * (wavelength_um * focallength_um) * (slmypixelsize / slmypixelpitch_um);
+            affineMatrix(1,:) = affineMatrix(1,:) * (wavelength_um * focallength_um) / (slmxpixelsize * slmxpixelpitch_um);
+            affineMatrix(2,:) = affineMatrix(2,:) * (wavelength_um * focallength_um) / (slmypixelsize * slmypixelpitch_um);
             obj = calibration.PositionCalibrator(affineMatrix);
         end
 

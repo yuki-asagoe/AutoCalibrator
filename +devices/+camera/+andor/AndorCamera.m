@@ -102,7 +102,7 @@ classdef AndorCamera < devices.camera.Camera
         end
         
         function enableCooler(obj,enable)
-            argumentsgit 
+            arguments (Input)
                 obj
                 enable logical = true
             end
@@ -160,4 +160,3 @@ classdef AndorCamera < devices.camera.Camera
         end
     end
 end
-

@@ -41,7 +41,7 @@ classdef PhaseMapForCalibGUI < handle
             coordinatesMeshY_um = obj.YPixelPitch_um * coordinatesMeshY;
             coordinatesMeshX_normalized = coordinatesMeshX / xsize; % almost -0.5 ~ 0.5
             coordinatesMeshY_normalized = coordinatesMeshY / ysize;
-            wavelength_um = obj.WaveLength_nm * 10e-3;
+            wavelength_um = obj.WaveLength_nm * 10^(-3);
 
             obj.ModulationArray(:,:) = obj.ModulationArray(:,:) + power * exp( ...
                 ... % X Y shift

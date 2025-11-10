@@ -1,7 +1,7 @@
 function positioncalibrator = scanAffineTransformParameter(camera, slm, zdistanceinfo, focallength_um, wavelength_nm, patternscale, centerpoints)
     arguments (Input)
         camera devices.camera.Camera
-        slm slm.PhaseSLM
+        slm devices.slm.PhaseSLM
         zdistanceinfo calibration.ZDistanceInfo
         focallength_um {mustBeNumeric}
         wavelength_nm {mustBeNumeric}
@@ -9,7 +9,6 @@ function positioncalibrator = scanAffineTransformParameter(camera, slm, zdistanc
         patternscale {mustBeNumeric} = 30;
         % キャリブレーションパターンの中心
         centerpoints (1,2) {mustBeNumeric} = [0,0]
-
     end
     arguments (Output)
         positioncalibrator calibration.PositionCalibrator
@@ -30,7 +29,7 @@ function positioncalibrator = scanAffineTransformParameter(camera, slm, zdistanc
         -1 0 ...
     ];
     trianglepoints = trianglepoints * patternscale + centerpoints;
-    phasemap = slm.PhaseMap(xpixelcount,ypixelcount,pixelpitch_um,pixelpitch_um,focallength_um,wavelength_nm);
+    phasemap = devices.slm.PhaseMap(xpixelcount,ypixelcount,pixelpitch_um,pixelpitch_um,focallength_um,wavelength_nm);
     for i =1:size(trianglepoints,1)
         point=trianglepoints(i,:);
         phasemap.addSpot(point(1),point(2),zdistanceinfo.calibrate(0),1);
@@ -44,9 +43,19 @@ function positioncalibrator = scanAffineTransformParameter(camera, slm, zdistanc
         image= rgb2gray(image);
     end
     brightspots = analysis.image.getbrightspots(image,3);
-    [farestpoint1index,farestpoint2index] = analysis.geometry.searchfarestpair([brightspots.CenterX brightspots.CenterY]);
+    brightspotpoints = [brightspots.CenterX, brightspots.CenterY];
+    [farestpoint1index,farestpoint2index] = analysis.geometry.searchfarestpair(brightspotpoints);
+    % 直角三角形の直角部分の頂点の添え字
     lastpointindex=[1 2 3];
     lastpointindex([farestpoint1index,farestpoint2index]) = [];
+    % このままだと最遠点として検出された点がどっちがどっちかわからないので外積の符号で判定する
+    basecrossproduct=math.cross2d(trianglepoints(3,:)-trianglepoints(1,:),trianglepoints(2,:)-trianglepoints(1,:));
+    inimagepointscrossproduct=math.cross2d(brightspotpoints(farestpoint2index,:)-brightspotpoints(farestpoint1index),brightspotpoints(lastpointindex)-brightspotpoints(farestpoint1index));
+    if sign(basecrossproduct) ~= sign(inimagepointscrossproduct)
+        temp = farestpoint1index;
+        farestpoint1index=farestpoint2index;
+        farestpoint2index=temp;
+    end
 
     trianglepointsinresultimage=[brightspots(farestpoint1index);brightspots(lastpointindex);brightspots(farestpoint2index)];
 

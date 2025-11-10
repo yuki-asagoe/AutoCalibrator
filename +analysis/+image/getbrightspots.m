@@ -11,7 +11,7 @@ function brightspots = getbrightspots(image, maxoutputcount)
         return
     end
     averagefilter=fspecial("average",3);
-    img=imfilter(image,averagefilter);
+    img=rescale(imfilter(image,averagefilter));
     thresh=adaptthresh(img, 0.01,'Statistic','gaussian');
     binaryimg_gauss=imbinarize(img,thresh);
     pixelgroups=bwconncomp(binaryimg_gauss,8);
