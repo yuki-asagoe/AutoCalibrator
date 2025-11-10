@@ -1,7 +1,8 @@
-function brightspots = getbrightspots(image, maxoutputcount)
+function brightspots = getbrightspots(image, maxoutputcount,scoretype)
     arguments (Input)
         image (:,:) {mustBeNumeric}
         maxoutputcount
+        scoretype analysis.image.BrightSpotScore
     end
     arguments (Output)
         brightspots (1,:) analysis.image.BrightSpot
@@ -16,16 +17,25 @@ function brightspots = getbrightspots(image, maxoutputcount)
     binaryimg_gauss=imbinarize(img,thresh);
     pixelgroups=bwconncomp(binaryimg_gauss,8);
 
-    % total amount of each pixel value in each connected pixel group
-    groupValueSum=zeros(pixelgroups.NumObjects);
-    for i = 1:pixelgroups.NumObjects
-        groupValueSum(i)=sum(image(pixelgroups.PixelIdxList{i}));
-    end
-    [~,sortingarray]=sort(groupValueSum,'descend');
+    if scoretype == analysis.image.BrightSpotScore.ValueSum
+        % total amount of each pixel value in each connected pixel group
+        groupValueSum=zeros(pixelgroups.NumObjects);
+        for i = 1:pixelgroups.NumObjects
+            groupValueSum(i)=sum(image(pixelgroups.PixelIdxList{i}));
+        end
+        [~,sortingarray]=sort(groupValueSum,'descend');
 
-    spots = [];
-    for i = 1:min([maxoutputcount pixelgroups.NumObjects])
-        spots = [spots analysis.image.BrightSpot.getFromImageAndPixels(image,pixelgroups.PixelIdxList{sortingarray(i)})];
+        spots = [];
+        for i = 1:min([maxoutputcount pixelgroups.NumObjects])
+            spots = [spots scoretype.getBrightSpot(image,pixelgroups.PixelIdxList{sortingarray(i)})];
+        end
+        brightspots= spots;
+    else
+        spots = [];
+        for i = 1:pixelgroups.NumObjects
+            spots = [spots scoretype.getBrightSpot(image,pixelgroups.PixelIdxList{i})];
+        end
+        [~,sortingarray]=sort([spots.Score],'descend');
+        brightspots=spots(sortingarray(1:min([maxoutputcount,length(spots)])));
     end
-    brightspots= spots;
 end
