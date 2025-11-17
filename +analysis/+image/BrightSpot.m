@@ -5,7 +5,7 @@ classdef BrightSpot
         % Unit [pixel^2]
         Area
         SumOfPixelValue
-        ScoreType BrightSpotScore
+        ScoreType analysis.image.BrightSpotScore
         Score {mustBeNumeric}
     end
 

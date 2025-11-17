@@ -31,13 +31,13 @@ classdef BrightSpotScore
                 case analysis.image.BrightSpotScore.ValueSum
                     score = sumvalue;
                 case analysis.image.BrightSpotScore.NormalizedGaussianCorrelation
-                    relativeX=pixelX-centerx;
-                    relativeY=pixelY-centery;
+                    relativeX=pixelsX-centerx;
+                    relativeY=pixelsY-centery;
                     radius=max([3,max(relativeX)-min(relativeX),max(relativeY)-min(relativeY)]);
                     score=sum(exp(-(relativeX.^2+relativeY.^2)/(2*(radius/2)^2)))/radius;
                 case analysis.image.BrightSpotScore.ScaledGaussianCorrelation
-                    relativeX=pixelX-centerx;
-                    relativeY=pixelY-centery;
+                    relativeX=pixelsX-centerx;
+                    relativeY=pixelsY-centery;
                     radius=max([3,max(relativeX)-min(relativeX),max(relativeY)-min(relativeY)]);
                     score=sum(exp(-(relativeX.^2+relativeY.^2)/(2*(radius/2)^2)));
                 case analysis.image.BrightSpotScore.InverseDistanceWeight
@@ -45,7 +45,7 @@ classdef BrightSpotScore
                 case analysis.image.BrightSpotScore.SquaredInverseDistanceWeight
                     score = dot((centerx.^2 + centery.^2)^(-1),values);
             end
-            spot = analysis.image.BrightSpot(centerx,centery,length(pixelLinearIdxList),sumvalue,obj,sumvalue);
+            spot = analysis.image.BrightSpot(centerx,centery,length(pixelLinearIdxList),sumvalue,obj,score);
         end
     end
 end

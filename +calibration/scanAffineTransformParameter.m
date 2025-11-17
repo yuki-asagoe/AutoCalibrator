@@ -22,7 +22,7 @@ function positioncalibrator = scanAffineTransformParameter(camera, slm, zdistanc
     
     [ypixelcount,xpixelcount]=slm.getPixelArraySize();
     pixelpitch_um=slm.getPixelPitch();
-
+    
     trianglepoints = [ ...
         1 0; ...
         0 -1; ...
@@ -43,7 +43,7 @@ function positioncalibrator = scanAffineTransformParameter(camera, slm, zdistanc
         image= rgb2gray(image);
     end
     brightspots = analysis.image.getbrightspots(image,3);
-    brightspotpoints = [brightspots.CenterX, brightspots.CenterY];
+    brightspotpoints = [brightspots.CenterX; brightspots.CenterY]';
     [farestpoint1index,farestpoint2index] = analysis.geometry.searchfarestpair(brightspotpoints);
     % 直角三角形の直角部分の頂点の添え字
     lastpointindex=[1 2 3];
