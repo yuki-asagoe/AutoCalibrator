@@ -34,6 +34,25 @@ classdef PositionCalibrator < handle
             savedMatrix=[invmatrix(1:2,1:2);invmatrix(1:2,3)'];
             csvwrite(filename,savedMatrix);
         end
+        
+        function saveByCompatibleCSVFormatForNormalPhaseMap(obj, filename, wavelength_um, focallength_um, slmxpixelsize, slmypixelsize, slmxpixelpitch_um, slmypixelpitch_um)
+            arguments
+                obj
+                filename
+                wavelength_um
+                focallength_um
+                slmxpixelsize = 1920
+                slmypixelsize = 1200
+                slmxpixelpitch_um = 8
+                slmypixelpitch_um = 8
+            end
+            affinematrix = obj.AffineMapMatrix;
+            affinematrix(1,:) = affinematrix(1,:) * (slmxpixelsize * slmxpixelpitch_um) / (wavelength_um * focallength_um);
+            affinematrix(2,:) = affinematrix(2,:) * (slmypixelsize * slmypixelpitch_um) / (wavelength_um * focallength_um);
+            invmatrix=calibration.PositionCalibrator.getInverseTransformParameter(affinematrix);
+            savedMatrix=[invmatrix(1:2,1:2);invmatrix(1:2,3)'];
+            csvwrite(filename,savedMatrix);
+        end
 
         function [outx,outy] = calibrate(obj,x,y)
             outPos=obj.AffineMapMatrix(:,1:2) * [x;y] + obj.AffineMapMatrix(1:2,3);
@@ -105,16 +124,16 @@ classdef PositionCalibrator < handle
             end
             numberofposition = size(inputpositions,1);
             iterationcount=numberofposition/3;
-            affinemapmatrix = zeros(2,3,iterationcount);
+            affinemapmatrix = zeros(2,3);
 
-            for i = 1:iterationcount
+            for i = ((1:iterationcount)-1)
                 A = [ ...
-                    inputpositions(i*3,1) inputpositions(i*3,2) 1; ...
                     inputpositions(i*3+1,1) inputpositions(i*3+1,2) 1; ...
                     inputpositions(i*3+2,1) inputpositions(i*3+2,2) 1; ...
+                    inputpositions(i*3+3,1) inputpositions(i*3+3,2) 1; ...
                 ];
-                bx = [outputpositions(i*3,1); outputpositions(i*3+1,1); outputpositions(i*3+2,1)];
-                by = [outputpositions(i*3,2); outputpositions(i*3+1,2); outputpositions(i*3+2,2)];
+                bx = [outputpositions(i*3+1,1); outputpositions(i*3+2,1); outputpositions(i*3+3,1)];
+                by = [outputpositions(i*3+1,2); outputpositions(i*3+2,2); outputpositions(i*3+3,2)];
                 
                 xrowcoefficients=linsolve(A,bx);
                 yrowcoefficients=linsolve(A,by);

@@ -98,7 +98,7 @@ classdef SantecSLM200DisplayHosted < devices.slm.PhaseSLM
                 dataEncodedForDisplay (:,:,3) uint8
             end
             arguments(Output)
-                phasearray (;,;) double
+                phasearray (:,:) double
             end
             R = dataEncodedForDisplay(:,:,1);
             G = dataEncodedForDisplay(:,:,2);

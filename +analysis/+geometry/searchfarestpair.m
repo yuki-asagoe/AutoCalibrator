@@ -9,4 +9,16 @@ function [point1index,point2index] = searchfarestpair(points)
     % 暇だったら直す
 
     % Not implemented
+    dist=-Inf;
+    pointcount=size(points,1);
+    for i=1:pointcount
+        for j=(i+1):pointcount
+            pairdist=math.euclideanDistance(points(i,:),points(j,:));
+            if pairdist > dist
+                point1index = i;
+                point2index = j;
+                dist=pairdist;
+            end
+        end
+    end
 end
