@@ -26,6 +26,9 @@ classdef BackgroundRemoveCameraWrapper < devices.camera.Camera
         function image=take(obj)
             image = obj.InnerCamera.take() - obj.Background * obj.BackgroundScale;
         end
+        function imageSize=getImageSize(obj)
+            imageSize=obj.InnerCamera.getImageSize();
+        end
 
         function updateBackground(obj)
             background = obj.InnerCamera.take();

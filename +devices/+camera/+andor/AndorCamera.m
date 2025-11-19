@@ -134,6 +134,18 @@ classdef AndorCamera < devices.camera.Camera
         function delete(obj)
             obj.close();
         end
+        function setImageSize(obj,size)
+            height=min([max([size(1),1]),1024]);
+            width=min([max([size(2),1]),1024]);
+
+            obj.ImageHeight=height;
+            obj.ImageWidth=width;
+            result=SetImage(1, 1, 1, obj.ImageWidth, 1, obj.ImageHeight);
+            obj.printIfResultIsError(result);
+        end
+        function imageSize=getImageSize(obj)
+            imageSize=[obj.ImageHeight,obj.ImageWidth];
+        end
     end
     
     methods(Access = private)

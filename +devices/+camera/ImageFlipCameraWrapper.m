@@ -32,5 +32,8 @@ classdef ImageFlipCameraWrapper < devices.camera.Camera
                 image=flip(image,2);
             end
         end
+        function imageSize=getImageSize(obj)
+            imageSize=obj.InnerCamera.getImageSize();
+        end
     end
 end
