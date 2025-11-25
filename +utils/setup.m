@@ -1,6 +1,6 @@
 andorcamera = devices.camera.andor.AndorCamera();
 andorcamera.open();
-camera=devices.camera.BackgroundRemoveWrappedCamera(andorcamera);
+camera=devices.camera.BackgroundRemoveCameraWrapper(andorcamera);
 slm = devices.slm.SantecSLM200DisplayHosted.createForDisplay(2);
 slm.open();
 etl = devices.etl.OptotuneLensDriver("COM6");

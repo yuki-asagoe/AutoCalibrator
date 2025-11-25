@@ -37,14 +37,19 @@ classdef IntensityWeightMap
         function saveInCompatibleCSVFormat(obj, filename)
             outputsize = 512;
             validation.mustBeSquareMatrix(obj.WeightMap);
-            mapsize=size(obj.WeightMap,1);
-            csvwrite(filename,imresize(obj.WeightMap,outputsize/mapsize));
+            outputWeight=zeros([outputsize,outputsize]);;
+            for x=1:outputsize
+                for y=1:outputsize
+                    outputWeight(y,x)=obj.getWeight(x,y);
+                end
+            end
+            csvwrite(filename,outputWeight);
         end
 
         function weight = getWeight(obj,x,y)
             [ysize,xsize] = size(obj.WeightMap);
-            xindex = clip(xsize * (clip(x,obj.MinX,obj.MaxX) - obj.MinX) / (obj.MaxX-obj.MinX),1,xsize);
-            yindex = clip(ysize * (clip(y,obj.MinY,obj.MaxX) - obj.MinY) / (obj.MaxY-obj.MinY),1,ysize);
+            xindex = clip(0.5 + xsize * (clip(x,obj.MinX,obj.MaxX) - obj.MinX) / (obj.MaxX-obj.MinX),1,xsize);
+            yindex = clip(0.5 + ysize * (clip(y,obj.MinY,obj.MaxY) - obj.MinY) / (obj.MaxY-obj.MinY),1,ysize);
 
             floorx=floor(xindex);
             ceilx=ceil(xindex);
