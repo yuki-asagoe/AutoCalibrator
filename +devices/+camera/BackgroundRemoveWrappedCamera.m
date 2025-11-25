@@ -1,7 +1,7 @@
 % 内部の camera インスタンスは take メソッドについて常に同じサイズのデータを返さなければいけません。
 classdef BackgroundRemoveWrappedCamera < devices.camera.Camera
     properties
-        InnerCamera devices.camera.Camera
+        InnerCamera
         BackgroundScale {mustBeNumeric}
         Background (:,:) {mustBeNumeric}
     end

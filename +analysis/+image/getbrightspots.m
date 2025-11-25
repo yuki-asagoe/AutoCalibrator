@@ -2,7 +2,7 @@ function brightspots = getbrightspots(image, maxoutputcount,scoretype)
     arguments (Input)
         image (:,:) {mustBeNumeric}
         maxoutputcount
-        scoretype analysis.image.BrightSpotScore
+        scoretype analysis.image.BrightSpotScore = analysis.image.BrightSpotScore.ValueSum
     end
     arguments (Output)
         brightspots (1,:) analysis.image.BrightSpot
