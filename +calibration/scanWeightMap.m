@@ -27,14 +27,16 @@ function weightmap = scanWeightMap(camera,slm,zdistanceinfo,positioncalibrator, 
     % 正直輝点の座標と輝度が検出できるから各画像に対して輝点を調べてもいいんだけど
     % 以前のプログラムがそういう実装なので踏襲する
 
-    intensitymap=zeros(imageHeight,imageWidth);
+    intensitymap=zeros(gridsize,gridsize);
+    
+    % figure;
     for gridy = 1:gridsize
         gridStartY=margin+gridHeight*(gridy-1);
         gridCenterY = gridStartY+gridHeight*0.5;
         for gridx = 1:gridsize
             gridStartX=margin+gridWidth*(gridx-1);
             gridCenterX = gridStartX+gridWidth*0.5;
-            phasemap = slm.PhaseMap(xpixelcount,ypixelcount,pixelpitch_um,pixelpitch_um, focallength_um, wavelength_nm);
+            phasemap = devices.slm.PhaseMap(xpixelcount,ypixelcount,pixelpitch_um,pixelpitch_um, focallength_um, wavelength_nm);
             [opticalx, opticaly]=positioncalibrator.calibrate(gridCenterX,gridCenterY);
             opticalz=zdistanceinfo.calibrate(0);
             phasemap.addSpot(opticalx,opticaly,opticalz,1);
@@ -48,17 +50,20 @@ function weightmap = scanWeightMap(camera,slm,zdistanceinfo,positioncalibrator, 
                 image = rgb2gray(image);
             end
             
-            filteredimg=rescale(imfilter(image,averagefilter));
+            filteredimg=imfilter(image,averagefilter);
+            
+            %imshow(rescale(filteredimg));
 
             intensitymap(gridy,gridx)=max(filteredimg(round(gridStartY):round(gridStartY+gridHeight) , round(gridStartX):round(gridStartX+gridWidth)),[],"all");
         end
     end
 
+    maxscale=5;
     normalizedintensity = intensitymap / max(intensitymap,[],"all");
-    normalizedintensity(normalizedintensity < 0.1) = 0.1;
+    normalizedintensity(normalizedintensity < (1/maxscale)) = (1/maxscale);
 
     % range [1 ~ 10]
-    correctionweights= 1/normalizedintensity;
+    correctionweights= 1./normalizedintensity;
     weightmap = calibration.IntensityWeightMap( ...
         correctionweights, ...
         margin, ...

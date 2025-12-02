@@ -35,9 +35,9 @@ classdef IntensityWeightMap
 
         % Save in csv fomat that has been used by previous code : calibrationGUI
         function saveInCompatibleCSVFormat(obj, filename)
-            outputsize = 512;
+            outputsize = 1024;
             validation.mustBeSquareMatrix(obj.WeightMap);
-            outputWeight=zeros([outputsize,outputsize]);;
+            outputWeight=zeros([outputsize,outputsize]);
             for x=1:outputsize
                 for y=1:outputsize
                     outputWeight(y,x)=obj.getWeight(x,y);
@@ -48,8 +48,8 @@ classdef IntensityWeightMap
 
         function weight = getWeight(obj,x,y)
             [ysize,xsize] = size(obj.WeightMap);
-            xindex = clip(0.5 + xsize * (clip(x,obj.MinX,obj.MaxX) - obj.MinX) / (obj.MaxX-obj.MinX),1,xsize);
-            yindex = clip(0.5 + ysize * (clip(y,obj.MinY,obj.MaxY) - obj.MinY) / (obj.MaxY-obj.MinY),1,ysize);
+            xindex = math.clamp(0.5 + xsize * (math.clamp(x,obj.MinX,obj.MaxX) - obj.MinX) / (obj.MaxX-obj.MinX),1,xsize);
+            yindex = math.clamp(0.5 + ysize * (math.clamp(y,obj.MinY,obj.MaxY) - obj.MinY) / (obj.MaxY-obj.MinY),1,ysize);
 
             floorx=floor(xindex);
             ceilx=ceil(xindex);
