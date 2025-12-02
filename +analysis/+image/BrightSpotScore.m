@@ -21,7 +21,7 @@ classdef BrightSpotScore
             arguments(Output)
                 spot analysis.image.BrightSpot
             end
-            [pixelsY,pixelsX]=ind2sub(size(grayscaleimage),pixelLinearIdxList);
+            [pixelsY,pixelsX]=ind2sub(size(image),pixelLinearIdxList);
             values=image(pixelLinearIdxList);
             sumvalue=sum(values);
             centerx=dot(pixelsX,double(values))/sumvalue;

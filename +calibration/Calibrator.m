@@ -16,9 +16,10 @@ classdef Calibrator
             obj.XZPosition=positioncalibrator;
             obj.ZDistance=zdistanceinfo;
         end
-        function [outx,outy,outz] = calibrate(obj,x,y,z)
+        function [outx,outy,outz,power] = calibrate(obj,x,y,z)
             [outx,outy]=obj.XZPosition.calibrate(x,y);
             outz=obj.ZDistance.calibrate(z);
+            power=obj.Intensity.getWeight(x,y);
         end
     end
 end
