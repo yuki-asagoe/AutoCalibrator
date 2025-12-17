@@ -1,4 +1,4 @@
-classdef FocusScoreSobelAndVariance < IFocusScore
+classdef FocusScoreSobelAndVariance < analysis.image.focusscore.IFocusScore
     methods(Access = public)
         function obj = FocusScoreSobelAndVariance()
         end

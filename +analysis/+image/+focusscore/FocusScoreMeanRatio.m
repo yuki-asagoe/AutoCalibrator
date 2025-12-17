@@ -1,4 +1,4 @@
-classdef FocusScoreMeanRatio < IFocusScore
+classdef FocusScoreMeanRatio < analysis.image.focusscore.IFocusScore
     methods(Access = public)
         function obj = FocusScoreMeanRatio()
         end

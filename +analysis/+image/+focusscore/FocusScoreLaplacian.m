@@ -1,4 +1,4 @@
-classdef FocusScoreLaplacian
+classdef FocusScoreLaplacian < IFocusScore
     methods(Access - public)
         function obj = FocusScoreLaplacian()
         end
