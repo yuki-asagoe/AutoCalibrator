@@ -19,9 +19,12 @@ function brightspots = getbrightspots(image, maxoutputcount)
     % binarize
     localmeanfilter=fspecial("average",2*floor(min([height,width])/16)+1);
     localmean=imfilter(image,localmeanfilter,"replicate");
-    stde=std(image,0,"all");
     img=img-localmean;
-    binaryimg=imbinarize(img,stde);
+    % Matlabが提供する適応的二値化とほぼ同じ(Bladley法)だが
+    % adaptthreshではここの係数は最大で0.6程度にしかならない
+    % あとどのみちあとあと最大値をガウシアンの最大値と推定したりする都合で
+    % 画像を局所平均で減ずるので結局局所平均は必要
+    binaryimg=imbinarize(img,localmean*0.7);
 
     pixelgroups=bwconncomp(binaryimg,8);
 

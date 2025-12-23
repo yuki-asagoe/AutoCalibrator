@@ -29,9 +29,9 @@ function sortedEstimatedPoints=estimateRespondPointPairs(basePoints,estimatedPoi
     for i=iteration
         chiSquaredDistances=zeros(pointCount,pointCount);
 
-        for i=1:pointCount
-            for j=1:pointCount
-                chiSquaredDistances(i,j)=analysis.statistics.getChiSquaredDistance(shapeContextOfBasePoints(i,:,:),shapeContextOfEstimatedPoints(j,:,:));
+        for j=1:pointCount
+            for k=1:pointCount
+                chiSquaredDistances(j,k)=analysis.statistics.getChiSquaredDistance(shapeContextOfBasePoints(j,:,:),shapeContextOfEstimatedPoints(k,:,:));
             end
         end
         similarity = 1./chiSquaredDistances;
@@ -39,7 +39,7 @@ function sortedEstimatedPoints=estimateRespondPointPairs(basePoints,estimatedPoi
 
         % 残り類似度のうちから最大の類似度を与えるペアから順番に対応付けしていきます
         sortIndexArray=zeros(1,pointCount);
-        for i=1:pointCount
+        for j=1:pointCount
             [maxSimilarities,basePointIdxProvidingMaxSimilarity] = max(similarity);
             [maxSimilarity,estimatedPointIdxProvidingMaxSimilarity] = max(maxSimilarities);
 
@@ -47,15 +47,15 @@ function sortedEstimatedPoints=estimateRespondPointPairs(basePoints,estimatedPoi
             selectedIdxOfBase=basePointIdxProvidingMaxSimilarity(selectedIdxOfEstimated);
             % 対応付けが完了したのでその点の関連する類似度を最小化している
             similarity(selectedIdxOfBase,:) = -Inf;
-            similarity(:,selectedIdxOfBase) = -Inf;
+            similarity(:,selectedIdxOfEstimated) = -Inf;
 
-            sortIndexArray(estimatedPointIdxProvidingMaxSimilarity)=selectedIdxOfBase;
+            sortIndexArray(selectedIdxOfBase)=selectedIdxOfEstimated;
 
-            score=score*maxSimilarity
+            score=score*maxSimilarity;
         end
         if score > maxscore
             maxscore=score;
-            sortedEstimatedPoints=estimatedPoints(sortIndexArray);
+            sortedEstimatedPoints=estimatedPoints(sortIndexArray,:);
         end
         if considerRotation
             shapeContextOfEstimatedPoints=circshift(shapeContextOfEstimatedPoints,1,3); % ShapeContext を角度1単位分だけ回転
