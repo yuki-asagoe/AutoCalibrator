@@ -1,10 +1,10 @@
 function brightspots = getbrightspots(image, maxoutputcount)
-    arguments (Input)
+    arguments(Input)
         image (:,:) {mustBeNumeric}
         maxoutputcount
     end
-    arguments (Output)
-        brightspots (1,:) analysis.image.BrightSpot
+    arguments(Output)
+        brightspots analysis.image.BrightSpot
     end
     if maxoutputcount < 1
         brightspots=[];
@@ -20,7 +20,8 @@ function brightspots = getbrightspots(image, maxoutputcount)
     localmeanfilter=fspecial("average",2*floor(min([height,width])/16)+1);
     localmean=imfilter(image,localmeanfilter,"replicate");
     stde=std(image,0,"all");
-    binaryimg=imbinarize(img,localmean+stde);
+    img=img-localmean;
+    binaryimg=imbinarize(img,stde);
 
     pixelgroups=bwconncomp(binaryimg,8);
 
@@ -29,7 +30,7 @@ function brightspots = getbrightspots(image, maxoutputcount)
     % 各領域について最大値の半分以下になる成分を取り除いて再度二値化
     for i=1:pixelgroups.NumObjects
         idxlist=pixelgroups.PixelIdxList{i};
-        detectedvalues=image(idxlist);
+        detectedvalues=img(idxlist);
         maxofregion=max(detectedvalues);
         greaterThanHalfIdxList=idxlist(detectedvalues > (maxofregion / 2));
         [row,col]=ind2sub([height,width],greaterThanHalfIdxList);
@@ -40,22 +41,29 @@ function brightspots = getbrightspots(image, maxoutputcount)
         localcol=col-(mincol-1);
         localwidth=max(localcol);
         localbinaryimg=false(localheight,localwidth);
-        localbinaryimg(localrow,localcol)=true;
+        localbinaryimg(sub2ind([localheight,localwidth],localrow,localcol))=true;
         greaterThanHalfPixelGroups=bwconncomp(localbinaryimg,8);
-        areaPixelIdxList=[areaPixelIdxList,greaterThanHalfPixelGroups.PixelIdxList];
+        for j=1:greaterThanHalfPixelGroups.NumObjects
+            [detected_localrow,detected_localcol]=ind2sub([localheight,localwidth],greaterThanHalfPixelGroups.PixelIdxList{j});
+            detected_globalrow=detected_localrow+(minrow-1);
+            detected_globalcol=detected_localcol+(mincol-1);
+            detected_global_linear_idx=sub2ind([height,width],detected_globalrow,detected_globalcol);
+            
+            areaPixelIdxList=[areaPixelIdxList,detected_global_linear_idx];
+        end
     end
 
     detectedAreaCount=length(areaPixelIdxList);
     % total amount of each pixel value in each connected pixel group
     groupValueSum=zeros(detectedAreaCount);
     for i = 1:detectedAreaCount
-        groupValueSum(i)=sum(image(pixelgroups.PixelIdxList{i}));
+        groupValueSum(i)=sum(img(areaPixelIdxList{i}));
     end
     [~,sortingarray]=sort(groupValueSum,'descend');
 
     spots = [];
-    for i = 1:min([maxoutputcount pixelgroups.NumObjects])
-        spots = [spots analysis.image.BrightSpotScore.ValueSum.getBrightSpot(image,pixelgroups.PixelIdxList{sortingarray(i)})];
+    for i = 1:min([maxoutputcount detectedAreaCount])
+        spots = [spots analysis.image.BrightSpotScore.ValueSum.getBrightSpot(img,areaPixelIdxList{sortingarray(i)})];
     end
     brightspots= spots;
 end
