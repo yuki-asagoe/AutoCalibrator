@@ -1,4 +1,4 @@
-classdef FocusScoreMeanRatio < IFocusScore
+classdef FocusScoreMeanRatio < analysis.image.focusscore.IFocusScore
     methods(Access = public)
         function obj = FocusScoreMeanRatio()
         end
@@ -10,11 +10,11 @@ classdef FocusScoreMeanRatio < IFocusScore
             binaryimg=imbinarize(filteredimg,thresh);
 
             if ~any(binaryimg,"all")
-                focusScore = 0;
+                value = 0;
                 return;
             end
 
-            focusScore=mean(image(binaryimg),"all")/mean(image(~binaryimg),"all");
+            value=mean(image(binaryimg),"all")/mean(image(~binaryimg),"all");
         end
     end
 end

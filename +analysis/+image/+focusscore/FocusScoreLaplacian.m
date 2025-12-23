@@ -1,5 +1,5 @@
-classdef FocusScoreLaplacian
-    methods(Access - public)
+classdef FocusScoreLaplacian < analysis.image.focusscore.IFocusScore
+    methods(Access = public)
         function obj = FocusScoreLaplacian()
         end
 
