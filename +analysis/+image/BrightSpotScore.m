@@ -10,6 +10,8 @@ classdef BrightSpotScore
         InverseDistanceWeight
         % 画素値と中心からの距離の二乗の積の総和
         SquaredInverseDistanceWeight
+        % 半値全幅までで切り捨てられてると想定して正規化ガウス関数
+        GaussianInFullHalfWidth
     end
     methods (Access = public)
         function spot = getBrightSpot(obj,image,pixelLinearIdxList)
@@ -44,6 +46,12 @@ classdef BrightSpotScore
                     score = dot((centerx.^2 + centery.^2)^(-1/2),values);
                 case analysis.image.BrightSpotScore.SquaredInverseDistanceWeight
                     score = dot((centerx.^2 + centery.^2)^(-1),values);
+                case analysis.image.BrightSpotScore.GaussianInFullHalfWidth
+                    relativeX=pixelsX-centerx;
+                    relativeY=pixelsY-centery;
+                    width=max([3,max(relativeX)-min(relativeX),max(relativeY)-min(relativeY)]);
+                    sigma=width/(2 * sqrt(2 * log(2)));
+                    score=sum(exp(-(relativeX.^2+relativeY.^2)/(2 * sigma^2)));
             end
             spot = analysis.image.BrightSpot(centerx,centery,length(pixelLinearIdxList),sumvalue,obj,score);
         end
