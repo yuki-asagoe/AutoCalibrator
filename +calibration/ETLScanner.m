@@ -65,7 +65,7 @@ classdef ETLScanner < handle
                 return;
             end
             obj.IterationCount = obj.IterationCount + 1;
-            hasNext = length(obj.ScannedETLRawValues) <= obj.IterationCount;
+            hasNext = length(obj.ScannedETLRawValues) < obj.IterationCount;
             if resetPhaseMap
                 obj.Slm.apply(obj.PhaseMap.getPhaseArray);
             end
