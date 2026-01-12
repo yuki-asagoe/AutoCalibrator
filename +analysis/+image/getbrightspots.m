@@ -68,7 +68,7 @@ function brightspots = getbrightspots(image, maxoutputcount)
     end
     [~,sortingarray]=sort(groupValueSum,'descend');
 
-    spots = [];
+    spots = analysis.image.BrightSpot.empty;
     for i = 1:min([maxoutputcount detectedAreaCount])
         spots = [spots analysis.image.BrightSpotScore.ValueSum.getBrightSpot(img,areaPixelIdxList{sortingarray(i)})];
     end

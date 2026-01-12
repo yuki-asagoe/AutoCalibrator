@@ -1,8 +1,8 @@
 classdef WeightMapScanner
 
     properties(Access = private)
-        Camera devices.camera.Camera
-        Slm devices.slm.PhaseSLM
+        Camera devices.camera.Camera = devices.camera.DummyCamera
+        Slm devices.slm.PhaseSLM = devices.slm.DummyPhaseSLM
         Calibrator calibration.PositionCalibrator
         FocalLength_um {mustBeNumeric}
         WaveLength_nm {mustBeNumeric}
@@ -53,7 +53,7 @@ classdef WeightMapScanner
                 return;
             end
             obj.IterationCount = obj.IterationCount + 1;
-            hasNext = obj.GridSize * obj.GridSize < obj.IterationCount;
+            hasNext = obj.GridSize * obj.GridSize > obj.IterationCount;
             gridy = ceil(obj.IterationCount/obj.GridSize);
             gridx = mod(obj.IterationCount-1,obj.GridSize)+1;
 

@@ -1,8 +1,8 @@
 classdef ETLScanner < handle
     properties(Access = private)
-        Camera devices.camera.Camera
-        Slm devices.slm.PhaseSLM
-        Etl devices.etl.OptotuneLensDriver
+        Camera devices.camera.Camera = devices.camera.DummyCamera
+        Slm devices.slm.PhaseSLM = devices.slm.DummyPhaseSLM
+        Etl devices.etl.ETL = devices.etl.DummyETL
         SpotX_um {mustBeNumeric}
         SpotY_um {mustBeNumeric}
         SpotZ_um {mustBeNumeric}
@@ -21,13 +21,13 @@ classdef ETLScanner < handle
             arguments(Input)
                 camera devices.camera.Camera
                 slm devices.slm.PhaseSLM
-                etl devices.etl.OptotuneLensDriver
+                etl devices.etl.ETL
                 spotx_um {mustBeNumeric}
                 spoty_um {mustBeNumeric}
                 spotz_um {mustBeNumeric}
                 focallength_um {mustBeNumeric}
                 wavelength_nm {mustBeNumeric}
-                scannedetlrawvalues {mustBeNumeric} = -4096:250:4095
+                scannedetlrawvalues {mustBeNumeric} = []
             end
             obj.Camera = camera;
             obj.Slm = slm;
@@ -37,6 +37,11 @@ classdef ETLScanner < handle
             obj.SpotZ_um = spotz_um;
             obj.FocalLength_um = focallength_um;
             obj.WaveLength_nm = wavelength_nm;
+            if isempty(scannedetlrawvalues)
+                [minValue,maxValue] = etl.getValueRange();
+                scannedetlrawvalues = linspace(minValue,maxValue,32);
+            end
+
             obj.ScannedETLRawValues = scannedetlrawvalues;
             obj.Scores = zeros([1,length(scannedetlrawvalues)]);
             obj.IterationCount = 0;
@@ -65,7 +70,7 @@ classdef ETLScanner < handle
                 return;
             end
             obj.IterationCount = obj.IterationCount + 1;
-            hasNext = length(obj.ScannedETLRawValues) < obj.IterationCount;
+            hasNext = length(obj.ScannedETLRawValues) > obj.IterationCount;
             if resetPhaseMap
                 obj.Slm.apply(obj.PhaseMap.getPhaseArray);
             end

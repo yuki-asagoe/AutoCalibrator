@@ -1,5 +1,5 @@
 % スレッドセーフではないのでマルチスレッド環境で呼ぶのは勘弁
-classdef OptotuneLensDriver < handle
+classdef OptotuneLensDriver < devices.etl.ETL
     properties(Access = private)
         IsOpen logical
         IsClosed logical
@@ -62,6 +62,11 @@ classdef OptotuneLensDriver < handle
                 ]), ...
                 "uint8" ...
             );
+        end
+
+        function [minValue,maxValue] = getValueRange(obj)
+            minValue = -4096;
+            maxValue = 4095;
         end
         
         function setCurrent(obj,value_mA)

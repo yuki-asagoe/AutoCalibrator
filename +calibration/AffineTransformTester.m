@@ -1,7 +1,7 @@
 classdef AffineTransformTester < handle
     properties(Access = private)
-        Camera devices.camera.Camera
-        Slm devices.slm.PhaseSLM
+        Camera devices.camera.Camera = devices.camera.DummyCamera
+        Slm devices.slm.PhaseSLM = devices.slm.DummyPhaseSLM
         SpotX_um {mustBeNumeric}
         SpotY_um {mustBeNumeric}
         SpotZ_um {mustBeNumeric}
@@ -52,7 +52,7 @@ classdef AffineTransformTester < handle
             phasemap = devices.slm.PhaseMap(xpixelcount,ypixelcount,pixelpitch_um,pixelpitch_um,obj.FocalLength_um,obj.WaveLength_nm);
             for i =1:size(trianglepoints,1)
                 point=trianglepoints(i,:);
-                phasemap.addSpot(point(1),point(2),zdistanceinfo.calibrate(0),1);
+                phasemap.addSpot(point(1),point(2),calibration.ZDistanceInfo(0).calibrate(0),1);
             end
             phasearray=phasemap.getPhaseArray();
             obj.Slm.apply(phasearray);
@@ -63,8 +63,15 @@ classdef AffineTransformTester < handle
                 image= rgb2gray(image);
             end
             brightspots = analysis.image.getbrightspots(image,3);
-            brightspotpoints = [brightspots.CenterX; brightspots.CenterY]';
-            [farestpoint1index,farestpoint2index] = analysis.geometry.searchfarestpair(brightspotpoints);
+            if length(brightspots) < 3
+                calibrator = calibration.PositionCalibrator.empty;
+                detectedSpots = [];
+                expectedSpots = [];
+                return;
+            end
+            expectedSpots = trianglepoints;
+            detectedSpots = [brightspots.CenterX; brightspots.CenterY]';
+            [farestpoint1index,farestpoint2index] = analysis.geometry.searchfarestpair(detectedSpots);
             % 直角三角形の直角部分の頂点の添え字
             lastpointindex=[1 2 3];
             lastpointindex([farestpoint1index,farestpoint2index]) = [];
@@ -72,14 +79,14 @@ classdef AffineTransformTester < handle
             basecrossproduct=math.cross2d(trianglepoints(3,:)-trianglepoints(1,:),trianglepoints(2,:)-trianglepoints(1,:));
             % 注意点としてmatlabでは画像の下方向がY軸正方向になるので軸をそろえるために外積符号は反転する
             % 入力の二点のY座標を反転して外積をとるのとその外積自体の符号を反転するのは同値のはず
-            inimagepointscrossproduct = - math.cross2d(brightspotpoints(farestpoint2index,:)-brightspotpoints(farestpoint1index),brightspotpoints(lastpointindex)-brightspotpoints(farestpoint1index));
+            inimagepointscrossproduct = - math.cross2d(detectedSpots(farestpoint2index,:)-detectedSpots(farestpoint1index),detectedSpots(lastpointindex)-detectedSpots(farestpoint1index));
             if sign(basecrossproduct) ~= sign(inimagepointscrossproduct)
                 temp = farestpoint1index;
                 farestpoint1index=farestpoint2index;
                 farestpoint2index=temp;
             end
 
-            trianglepointsinresultimage=[brightspotpoints(farestpoint1index,:);brightspotpoints(lastpointindex,:);brightspotpoints(farestpoint2index,:)];
+            trianglepointsinresultimage=[detectedSpots(farestpoint1index,:);detectedSpots(lastpointindex,:);detectedSpots(farestpoint2index,:)];
 
             calibrator= calibration.PositionCalibrator.adjust(trianglepointsinresultimage,trianglepoints);
         end
@@ -112,7 +119,7 @@ classdef AffineTransformTester < handle
             phasemap = devices.slm.PhaseMap(xpixelcount,ypixelcount,pixelpitch_um,pixelpitch_um,obj.FocalLength_um,obj.WaveLength_nm);
             actualpoints=provisionalCalibrator.calibratePointArray(hexagonpoints);
             for i =1:size(actualpoints,1)
-                phasemap.addSpot(actualpoints(i,1),actualpoints(i,2),zdistanceinfo.calibrate(0),1);
+                phasemap.addSpot(actualpoints(i,1),actualpoints(i,2),calibration.ZDistanceInfo(0).calibrate(0),1);
             end
             phasearray=phasemap.getPhaseArray();
             obj.Slm.apply(phasearray);
@@ -123,8 +130,15 @@ classdef AffineTransformTester < handle
                 image= rgb2gray(image);
             end
             brightspots = analysis.image.getbrightspots(image,6);
-            brightspotpos=[brightspots.CenterX;brightspots.CenterY]';
-            respondpoints=analysis.image.estimateRespondPointPairs(hexagonpoints,brightspotpos);
+            if length(brightspots) < 6
+                calibrator = calibration.PositionCalibrator.empty;
+                expectedSpots = [];
+                detectedSpots = [];
+                return;
+            end
+            expectedSpots=hexagonpoints;
+            detectedSpots=[brightspots.CenterX;brightspots.CenterY]';
+            respondpoints=analysis.image.estimateRespondPointPairs(hexagonpoints,detectedSpots);
 
             calibrator=calibration.PositionCalibrator.adjust(respondpoints,actualpoints);
         end
