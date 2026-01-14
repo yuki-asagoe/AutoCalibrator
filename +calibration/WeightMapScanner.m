@@ -1,4 +1,4 @@
-classdef WeightMapScanner
+classdef WeightMapScanner < handle
 
     properties(Access = private)
         Camera devices.camera.Camera = devices.camera.DummyCamera
@@ -27,7 +27,7 @@ classdef WeightMapScanner
                 focallength_um {mustBeNumeric}
                 wavelength_nm {mustBeNumeric}
                 gridsize {mustBeInteger} = 21
-                margin {mustBeNumeric} = 0
+                margin {mustBeNumeric} = 1
                 zshift {mustBeNumeric} = 0
             end
             obj.Camera = camera;
@@ -38,9 +38,12 @@ classdef WeightMapScanner
             obj.GridSize = gridsize;
             imageSize=obj.Camera.getImageSize();
             [obj.SLMYPixelCount,obj.SLMXPixelCount]=slm.getPixelArraySize();
-            SLMPixelPitch_um=slm.getPixelPitch();
+            obj.SLMPixelPitch_um=slm.getPixelPitch();
             obj.ImageHeight=imageSize(1);
             obj.ImageWidth=imageSize(2);
+            if margin < 1
+                margin = 1;
+            end
             obj.Margin = margin;
             obj.ZShift = zshift;
             obj.IntensityMap = zeros(obj.GridSize);
@@ -67,11 +70,11 @@ classdef WeightMapScanner
             [opticalx, opticaly]=positioncalibrator.calibrate(gridCenterX,gridCenterY);
             phasemap.addSpot(opticalx,opticaly,obj.ZShift,1);
 
-            slm.apply(phasemap.getPhaseArray);
+            obj.Slm.apply(phasemap.getPhaseArray);
 
             pause(0.05);
 
-            image = camera.take();
+            image = obj.Camera.take();
             if size(image,3) == 3
                 image = rgb2gray(image);
             end

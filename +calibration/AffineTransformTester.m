@@ -102,6 +102,9 @@ classdef AffineTransformTester < handle
                 detectedSpots (:,2) {mustBeNumeric}
                 expectedSpots (:,2) {mustBeNumeric}
             end
+
+            [ypixelcount,xpixelcount]=obj.Slm.getPixelArraySize();
+            pixelpitch_um=obj.Slm.getPixelPitch();
             imageSize=obj.Camera.getImageSize();
             ysize=imageSize(1);
             xsize=imageSize(2);
