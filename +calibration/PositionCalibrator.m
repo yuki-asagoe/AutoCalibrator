@@ -158,6 +158,17 @@ classdef PositionCalibrator < handle
 
             obj= calibration.PositionCalibrator(affinemapmatrix);
         end
+
+        function obj = mean(inputCalibrators)
+            arguments(Input)
+                inputCalibrators calibration.PositionCalibrator
+            end
+            values = zeros(2,3,length(inputCalibrators));
+            for i= 1:length(inputCalibrators)
+                values(:,:,i) = values.AffineMapMatrix;
+            end
+            obj = calibration.PositionCalibrator(mean(values,3));
+        end
     end
 
     methods(Access = private, Static)

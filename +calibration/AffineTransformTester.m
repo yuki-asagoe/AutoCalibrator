@@ -90,6 +90,61 @@ classdef AffineTransformTester < handle
 
             calibrator= calibration.PositionCalibrator.adjust(trianglepointsinresultimage,trianglepoints);
         end
+
+        function [calibrator,image,detectedSpots,expectedSpots] = tryByTriangleWithProvisionalCalibrator(obj,provisionalCalibrator)
+            arguments(Input)
+                obj calibration.AffineTransformTester
+                provisionalCalibrator calibration.PositionCalibrator
+                rotationAngle_rad {mustBeNumeric} = 2 * pi * rand()
+            end
+            arguments(Output)
+                calibrator calibration.PositionCalibrator
+                image
+                detectedSpots (:,2) {mustBeNumeric}
+                expectedSpots (:,2) {mustBeNumeric}
+            end
+            [ypixelcount,xpixelcount]=obj.Slm.getPixelArraySize();
+            pixelpitch_um=obj.Slm.getPixelPitch();
+            imageSize=obj.Camera.getImageSize();
+            ysize=imageSize(1);
+            xsize=imageSize(2);
+            centerpoints = [xsize/2,ysize/2];
+            patternscale = min([xsize,ysize])*0.3;
+            trianglepoints = [ ...
+                0 1; ...
+                -sqrt(3)/2 -0.5; ...
+                sqrt(3)/2 -0.5 ...
+            ];
+            rotMat=[cos(rotationAngle_rad), -sin(rotationAngle_rad);sin(rotationAngle_rad), cos(rotationAngle_rad)];
+            trianglepoints = ((trianglepoints') * rotMat)';
+            trianglepoints = trianglepoints * patternscale + centerpoints;
+
+            phasemap = devices.slm.PhaseMap(xpixelcount,ypixelcount,pixelpitch_um,pixelpitch_um,obj.FocalLength_um,obj.WaveLength_nm);
+            actualpoints=provisionalCalibrator.calibratePointArray(trianglepoints);
+            for i =1:size(actualpoints,1)
+                phasemap.addSpot(actualpoints(i,1),actualpoints(i,2),calibration.ZDistanceInfo(0).calibrate(0),1);
+            end
+            phasearray=phasemap.getPhaseArray();
+            obj.Slm.apply(phasearray);
+            pause(0.05);
+
+            image = obj.Camera.take();
+            if size(image,3) == 3
+                image= rgb2gray(image);
+            end
+            brightspots = analysis.image.getbrightspots(image,3);
+            if length(brightspots) < 3
+                calibrator = calibration.PositionCalibrator.empty;
+                expectedSpots = [];
+                detectedSpots = [];
+                return;
+            end
+            expectedSpots=trianglepoints;
+            detectedSpots=[brightspots.CenterX;brightspots.CenterY]';
+            respondpoints=analysis.image.estimateRespondPointPairs(hexagonpoints,detectedSpots);
+
+            calibrator=calibration.PositionCalibrator.adjust(respondpoints,actualpoints);
+        end
         
         function [calibrator,image,detectedSpots,expectedSpots] = tryByHexagon(obj,provisionalCalibrator)
             arguments(Input)
