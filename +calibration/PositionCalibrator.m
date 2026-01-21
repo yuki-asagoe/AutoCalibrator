@@ -165,7 +165,7 @@ classdef PositionCalibrator < handle
             end
             values = zeros(2,3,length(inputCalibrators));
             for i= 1:length(inputCalibrators)
-                values(:,:,i) = values.AffineMapMatrix;
+                values(:,:,i) = inputCalibrators(i).AffineMapMatrix;
             end
             obj = calibration.PositionCalibrator(mean(values,3));
         end

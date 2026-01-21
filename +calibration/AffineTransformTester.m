@@ -43,10 +43,11 @@ classdef AffineTransformTester < handle
             pixelpitch_um=obj.Slm.getPixelPitch();
     
             centerpoints=[obj.SpotX_um,obj.SpotY_um];
+            % いわゆる有名角の三角形 (90°/60°/30°)
             trianglepoints = [ ...
+                0 0; ...
                 1 0; ...
-                0 -1; ...
-                -1 0 ...
+                0 sqrt(3) ...
             ];
             trianglepoints = trianglepoints * obj.PattenScale + centerpoints;
             phasemap = devices.slm.PhaseMap(xpixelcount,ypixelcount,pixelpitch_um,pixelpitch_um,obj.FocalLength_um,obj.WaveLength_nm);
@@ -63,35 +64,38 @@ classdef AffineTransformTester < handle
                 image= rgb2gray(image);
             end
             brightspots = analysis.image.getbrightspots(image,3);
-            if length(brightspots) < 3
-                calibrator = calibration.PositionCalibrator.empty;
-                detectedSpots = [];
-                expectedSpots = [];
-                return;
-            end
             expectedSpots = trianglepoints;
             detectedSpots = [brightspots.CenterX; brightspots.CenterY]';
-            [farestpoint1index,farestpoint2index] = analysis.geometry.searchfarestpair(detectedSpots);
-            % 直角三角形の直角部分の頂点の添え字
-            lastpointindex=[1 2 3];
-            lastpointindex([farestpoint1index,farestpoint2index]) = [];
-            % このままだと最遠点として検出された点がどっちがどっちかわからないので外積の符号で判定する
-            basecrossproduct=math.cross2d(trianglepoints(3,:)-trianglepoints(1,:),trianglepoints(2,:)-trianglepoints(1,:));
-            % 注意点としてmatlabでは画像の下方向がY軸正方向になるので軸をそろえるために外積符号は反転する
-            % 入力の二点のY座標を反転して外積をとるのとその外積自体の符号を反転するのは同値のはず
-            inimagepointscrossproduct = - math.cross2d(detectedSpots(farestpoint2index,:)-detectedSpots(farestpoint1index),detectedSpots(lastpointindex)-detectedSpots(farestpoint1index));
-            if sign(basecrossproduct) ~= sign(inimagepointscrossproduct)
-                temp = farestpoint1index;
-                farestpoint1index=farestpoint2index;
-                farestpoint2index=temp;
+            if length(brightspots) < 3
+                calibrator = calibration.PositionCalibrator.empty;
+                return;
             end
 
-            trianglepointsinresultimage=[detectedSpots(farestpoint1index,:);detectedSpots(lastpointindex,:);detectedSpots(farestpoint2index,:)];
+            % 各点の角度のcos値から元の三角形との対応を推論
+            cosValues=zeros(3,1);
+            for i=1:3
+                normalizedVectors = zeros(2,2);
+                for j=1:2
+                    targetIndex=[];
+                    if j >= i
+                        targetIndex = j+1;
+                    else
+                        targetIndex = j;
+                    end
+                    diffVec=detectedSpots(targetIndex,:) - detectedSpots(i,:);
+                    normalizedVectors(j,:)=diffVec / norm(diffVec);
+                end
+                cosValues(i)=dot(normalizedVectors(1,:),normalizedVectors(1,:));
+            end
+            [~,I] = sort(cosValues);
 
-            calibrator= calibration.PositionCalibrator.adjust(trianglepointsinresultimage,trianglepoints);
+
+            respondPointsInImage=detectedSpots(I,:);
+
+            calibrator= calibration.PositionCalibrator.adjust(respondPointsInImage,trianglepoints);
         end
 
-        function [calibrator,image,detectedSpots,expectedSpots] = tryByTriangleWithProvisionalCalibrator(obj,provisionalCalibrator)
+        function [calibrator,image,detectedSpots,expectedSpots] = tryByTriangleWithProvisionalCalibrator(obj,provisionalCalibrator,rotationAngle_rad)
             arguments(Input)
                 obj calibration.AffineTransformTester
                 provisionalCalibrator calibration.PositionCalibrator
@@ -116,7 +120,7 @@ classdef AffineTransformTester < handle
                 sqrt(3)/2 -0.5 ...
             ];
             rotMat=[cos(rotationAngle_rad), -sin(rotationAngle_rad);sin(rotationAngle_rad), cos(rotationAngle_rad)];
-            trianglepoints = ((trianglepoints') * rotMat)';
+            trianglepoints = (rotMat * (trianglepoints'))';
             trianglepoints = trianglepoints * patternscale + centerpoints;
 
             phasemap = devices.slm.PhaseMap(xpixelcount,ypixelcount,pixelpitch_um,pixelpitch_um,obj.FocalLength_um,obj.WaveLength_nm);
@@ -141,7 +145,7 @@ classdef AffineTransformTester < handle
             end
             expectedSpots=trianglepoints;
             detectedSpots=[brightspots.CenterX;brightspots.CenterY]';
-            respondpoints=analysis.image.estimateRespondPointPairs(hexagonpoints,detectedSpots);
+            respondpoints=analysis.image.estimateRespondPointPairs(trianglepoints,detectedSpots);
 
             calibrator=calibration.PositionCalibrator.adjust(respondpoints,actualpoints);
         end
