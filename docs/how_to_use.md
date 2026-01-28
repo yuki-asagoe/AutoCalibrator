@@ -112,7 +112,9 @@ etl.close();
 
 ```matlab
 % 変数で抱えておくことをお勧めします
-gui = tools.gui.AutoCalibrator
+gui = tools.gui.AutoCalibrator(slm,etl,camera,"save/calibrationDataFolderName");
+% 補正データのフォルダ名は省略できます
+gui = tools.gui.AutoCalibrator(slm,etl,camera);
 ```
 
 ![main](./image/gui/main.png)
