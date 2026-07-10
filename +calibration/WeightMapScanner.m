@@ -67,7 +67,7 @@ classdef WeightMapScanner < handle
             gridStartX=obj.Margin+gridWidth*(gridx-1);
             gridCenterX = gridStartX+gridWidth*0.5;
             phasemap = devices.slm.PhaseMap(obj.SLMXPixelCount,obj.SLMYPixelCount,obj.SLMPixelPitch_um,obj.SLMPixelPitch_um, obj.FocalLength_um, obj.WaveLength_nm);
-            [opticalx, opticaly]=positioncalibrator.calibrate(gridCenterX,gridCenterY);
+            [opticalx, opticaly]=obj.Calibrator.calibrate(gridCenterX,gridCenterY);
             phasemap.addSpot(opticalx,opticaly,obj.ZShift,1);
 
             obj.Slm.apply(phasemap.getPhaseArray);

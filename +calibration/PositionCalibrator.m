@@ -24,7 +24,7 @@ classdef PositionCalibrator < handle
         end
 
         function str = toSimpleString(obj)
-            str = sprintf("%[8.3f,8.3f]\n[8.3f,8.3f]\nt=[8.3f,8.3f]", ...
+            str = sprintf("[%8.3f,%8.3f]\n[%8.3f,%8.3f]\nt=[%8.3f,%8.3f]", ...
                 obj.AffineMapMatrix(1,1), ...
                 obj.AffineMapMatrix(1,2), ...
                 obj.AffineMapMatrix(2,1), ...
@@ -165,7 +165,7 @@ classdef PositionCalibrator < handle
             end
             values = zeros(2,3,length(inputCalibrators));
             for i= 1:length(inputCalibrators)
-                values(:,:,i) = values.AffineMapMatrix;
+                values(:,:,i) = inputCalibrators(i).AffineMapMatrix;
             end
             obj = calibration.PositionCalibrator(mean(values,3));
         end
