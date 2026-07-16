@@ -80,7 +80,7 @@ classdef ETLScanner < handle
             pause(0.05);
 
             image = obj.Camera.take();
-            score = analysis.image.getFocusScore(image);
+            score = analysis.image.getFocusScore_WeightedSobel(image);
             obj.Scores(obj.IterationCount)=score;
             if score > obj.CurrentMaxScore
                 obj.CurrentMaxScore = score;

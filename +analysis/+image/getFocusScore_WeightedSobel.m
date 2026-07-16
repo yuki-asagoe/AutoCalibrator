@@ -1,4 +1,4 @@
-function focusScore = getFocusScore(image)
+function focusScore = getFocusScore_WeightedSobel(image)
     arguments(Input)
         image (:,:) {mustBeNumeric}
     end
@@ -6,7 +6,7 @@ function focusScore = getFocusScore(image)
         focusScore double
     end
 
-    thresh = adaptthresh(filteredimg, 0.01,'Statistic','gaussian');
+    thresh = adaptthresh(image, 0.01,'Statistic','gaussian');
     weight = abs(image - thresh);
     sobelX = fspecial("sobel");
     xGrad = weight.*imfilter(image,sobelX);
