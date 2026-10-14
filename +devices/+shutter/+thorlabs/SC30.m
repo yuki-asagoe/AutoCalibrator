@@ -1,10 +1,9 @@
 classdef SC30 < devices.shutter.Shutter
     properties(Access = private)
+        SeiralPort
         Disposed logical
-        SdkLocation string
-        DeviceHandle
-        ParamHandles dictionary
     end
+
     methods(Access = private)
         function assertNotDisposed(obj)
             if obj.Disposed
@@ -12,37 +11,50 @@ classdef SC30 < devices.shutter.Shutter
             end
         end
 
-        function paramHandle = getParameterhandle(obj, paramName)
-            arguments(Input)
-                obj
-                paramName string
+        function flushInput(obj)
+            if obj.SeiralPort.NumBytesAvailable > 0
+                flush(obj.SeiralPort,"input");
             end
-            if ~isKey(obj.ParamHandles,paramName)
-                paramNameAtChar = convertStringsToChars(paramName);
-                paramHandle = calllib(obj.SdkLocation,"GetParameterHandle",obj.DeviceHandle,paramNameAtChar);
-                obj.ParamHandles(paramName) = paramHandle;
-            else
-                paramHandle = obj.ParamHandles(paramName);
+        end
+
+        % Input responseText should be a string of one line without line break chars
+        function resultValue, commandName = parseResponse(~,responseText)
+            if responseText == "UNKNOWN COMMAND!"
+                resultValue = [];
+                return;
             end
+            splitResponse = split(responseText,"? ");
+            resultValue = splitResponse(2);
+            commandName = splitResponse(1);
+        end
+
+        function sendCommand(obj,command)
+            writeline(obj.SeiralPort,uint8(command));
+        end
+
+        function resultValue = sendCommandAndGetResult(obj,command)
+            obj.flushInput();
+            obj.sendCommand(command);
+            line = readline(obj.SerialPort);
+            resultValue = obj.parseResponse(line);
+        end
+
+        function sendCommandAndDiscardResult(obj,command)
+            obj.sendCommandAndGetResult(command);
         end
     end
 
     methods(Access = public)
-        function obj = ThorlabShutter(sdk_header_location)
+        function obj = SC30(portname)
             obj.Disposed = false;
-            obj.SdkLocation = sdk_header_location;
-            obj.ParamHandles = dictionary();
-            if(not libisloaded(obj.SdkLocation))
-                loadlibrary(obj.SdkLocation);
-            end
-            calllib(obj.SdkLocation,"OpenPluginManager");
-
-            obj.DeviceHandle = devices.util.thorlabs.finddevice(obj.SdkLocation,0x100E,0x1313); % These are product and vender id of sc30
-            if isempty(obj.DeviceHandle)
-                error("Could not find installed SC30 device");
-            end
-            if calllib(obj.SdkLocation,"OpenDevice") == int32(false)
-                error("Could not open loaded SC30 device");
+            obj.SeiralPort = serialport(portname,115200);
+            % SC30 seems send carriage return as terminator
+            obj.SeiralPort.configureTerminator("CR","CR/LF");
+            pause(0.5);
+            result = obj.sendCommandAndGetResult("model?");
+            if result ~= "SC30"
+                obj.dispose();
+                error("Connected device seems not SC30");
             end
         end
 
@@ -65,34 +77,32 @@ classdef SC30 < devices.shutter.Shutter
         end
 
         function setshutter(obj,channel,open)
-            obj.assertNotDisposed();
             arguments(Input)
                 obj
                 channel int32
                 open logical
             end
+            obj.assertNotDisposed();
             if ~any([1,2] == channel)
                 error(sprintf("This channel[%d] is not supported",channel));
             end
-            param = obj.getParameterhandle("enable_channel");
-            value = zeros(1,"uint8")
-            value(0) = open;
-            pOfValue = libpointer('voidPtr',value);
-            % channel is enum originally, but pass as int here.
-            calllib(obj.SdkLocation,"SetParameterValueToDevice",obj.DeviceHandle,param,channel,pOfValue,1);
-            clear pOfValue
+            if open
+                sendCommand("enable" + channel + "=1")
+            else
+                sendCommand("enable" + channel + "=0")
+            end
+        end
+
+        function delete(obj)
+            obj.dispose();
         end
 
         function dispose(obj)
             if obj.Disposed
                 return;
             end
-            calllib(obj.SdkLocation,"CloseDevice",obj.DeviceHandle);
+            delete(obj.SeiralPort)
             obj.Disposed = true;
-        end
-
-        function delete(obj)
-            obj.dispose();
         end
     end
 end
