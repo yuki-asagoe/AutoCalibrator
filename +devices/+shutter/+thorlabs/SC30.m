@@ -1,6 +1,6 @@
 classdef SC30 < devices.shutter.Shutter
     properties(Access = private)
-        SeiralPort
+        SerialPort
         Disposed logical
     end
 
@@ -12,8 +12,8 @@ classdef SC30 < devices.shutter.Shutter
         end
 
         function flushInput(obj)
-            if obj.SeiralPort.NumBytesAvailable > 0
-                flush(obj.SeiralPort,"input");
+            if obj.SerialPort.NumBytesAvailable > 0
+                flush(obj.SerialPort,"input");
             end
         end
 
@@ -29,27 +29,24 @@ classdef SC30 < devices.shutter.Shutter
         end
 
         function sendCommand(obj,command)
-            writeline(obj.SeiralPort,uint8(command));
+            writeline(obj.SerialPort,uint8(command));
         end
 
         function resultValue = sendCommandAndGetResult(obj,command)
             obj.flushInput();
             obj.sendCommand(command);
+            readline(obj.SerialPort); % SC30 sends empty line at start of response
             line = readline(obj.SerialPort);
             resultValue = obj.parseResponse(line);
-        end
-
-        function sendCommandAndDiscardResult(obj,command)
-            obj.sendCommandAndGetResult(command);
         end
     end
 
     methods(Access = public)
         function obj = SC30(portname)
             obj.Disposed = false;
-            obj.SeiralPort = serialport(portname,115200);
+            obj.SerialPort = serialport(portname,115200);
             % SC30 seems send carriage return as terminator
-            obj.SeiralPort.configureTerminator("CR","CR/LF");
+            obj.SerialPort.configureTerminator("CR","CR/LF");
             pause(0.5);
             result = obj.sendCommandAndGetResult("model?");
             if result ~= "SC30"
@@ -87,9 +84,9 @@ classdef SC30 < devices.shutter.Shutter
                 error(sprintf("This channel[%d] is not supported",channel));
             end
             if open
-                sendCommand("enable" + channel + "=1")
+                sendCommand("enable" + channel + "=1");
             else
-                sendCommand("enable" + channel + "=0")
+                sendCommand("enable" + channel + "=0");
             end
         end
 
@@ -101,7 +98,7 @@ classdef SC30 < devices.shutter.Shutter
             if obj.Disposed
                 return;
             end
-            delete(obj.SeiralPort)
+            delete(obj.SerialPort);
             obj.Disposed = true;
         end
     end
