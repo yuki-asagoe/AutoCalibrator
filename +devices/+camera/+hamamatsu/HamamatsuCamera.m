@@ -1,4 +1,66 @@
 classdef HamamatsuCamera < devices.camera.Camera
+    %% Available Formats
+    % 'MONO12_2048x2048_Std'
+    % 'MONO12_2048x2048_UltraQuiet'
+    % 'MONO12_BIN2x2_1024x1024_Std'
+    % 'MONO12_BIN2x2_1024x1024_UltraQuiet'
+    % 'MONO12_BIN2x2_DualLightSheet Mode_Std'
+    % 'MONO12_BIN2x2_DualLightSheet Mode_UltraQuiet'
+    % 'MONO12_BIN2x2_SplitView Mode_Std'
+    % 'MONO12_BIN2x2_SplitView Mode_UltraQuiet'
+    % 'MONO12_BIN4x4_512x512_Std'
+    % 'MONO12_BIN4x4_512x512_UltraQuiet'
+    % 'MONO12_BIN4x4_DualLightSheet Mode_Std'
+    % 'MONO12_BIN4x4_DualLightSheet Mode_UltraQuiet'
+    % 'MONO12_BIN4x4_SplitView Mode_Std'
+    % 'MONO12_BIN4x4_SplitView Mode_UltraQuiet'
+    % 'MONO12_DualLightSheet Mode_Std'
+    % 'MONO12_DualLightSheet Mode_UltraQuiet'
+    % 'MONO12_LightSheet Mode_Std'
+    % 'MONO12_LightSheet Mode_UltraQuiet'
+    % 'MONO12_SplitView Mode_Std'
+    % 'MONO12_SplitView Mode_UltraQuiet'
+    % 'MONO16_2048x2048_Std'
+    % 'MONO16_2048x2048_UltraQuiet' 
+    % 'MONO16_BIN2x2_1024x1024_Std'
+    % 'MONO16_BIN2x2_1024x1024_UltraQuiet'
+    % 'MONO16_BIN2x2_DualLightSheet Mode_Std'
+    % 'MONO16_BIN2x2_DualLightSheet Mode_UltraQuiet'
+    % 'MONO16_BIN2x2_SplitView Mode_Std'
+    % 'MONO16_BIN2x2_SplitView Mode_UltraQuiet'
+    % 'MONO16_BIN4x4_512x512_Std'
+    % 'MONO16_BIN4x4_512x512_UltraQuiet'
+    % 'MONO16_BIN4x4_DualLightSheet Mode_Std'
+    % 'MONO16_BIN4x4_DualLightSheet Mode_UltraQuiet'
+    % 'MONO16_BIN4x4_SplitView Mode_Std'
+    % 'MONO16_BIN4x4_SplitView Mode_UltraQuiet'
+    % 'MONO16_DualLightSheet Mode_Std'
+    % 'MONO16_DualLightSheet Mode_UltraQuiet'
+    % 'MONO16_LightSheet Mode_Std' 
+    % 'MONO16_LightSheet Mode_UltraQuiet'
+    % 'MONO16_SplitView Mode_Std'
+    % 'MONO16_SplitView Mode_UltraQuiet'
+    % 'MONO8_2048x2048_Std'
+    % 'MONO8_2048x2048_UltraQuiet'
+    % 'MONO8_BIN2x2_1024x1024_Std'
+    % 'MONO8_BIN2x2_1024x1024_UltraQuiet'
+    % 'MONO8_BIN2x2_DualLightSheet Mode_Std'
+    % 'MONO8_BIN2x2_DualLightSheet Mode_UltraQuiet'
+    % 'MONO8_BIN2x2_SplitView Mode_Std'
+    % 'MONO8_BIN2x2_SplitView Mode_UltraQuiet'
+    % 'MONO8_BIN4x4_512x512_Std'
+    % 'MONO8_BIN4x4_512x512_UltraQuiet'
+    % 'MONO8_BIN4x4_DualLightSheet Mode_Std'
+    % 'MONO8_BIN4x4_DualLightSheet Mode_UltraQuiet'
+    % 'MONO8_BIN4x4_SplitView Mode_Std'
+    % 'MONO8_BIN4x4_SplitView Mode_UltraQuiet'
+    % 'MONO8_DualLightSheet Mode_Std'
+    % 'MONO8_DualLightSheet Mode_UltraQuiet'
+    % 'MONO8_LightSheet Mode_Std'
+    % 'MONO8_LightSheet Mode_UltraQuiet'
+    % 'MONO8_SplitView Mode_Std'
+    % 'MONO8_SplitView Mode_UltraQuiet'
+    %%
     properties(Access = private)
         DeviceID {mustBeInteger}
         VideoInputDevice
@@ -23,11 +85,14 @@ classdef HamamatsuCamera < devices.camera.Camera
         end
 
         function open(obj)
+            obj.openWithFormat("MONO16_2048x2048_Std");
+        end
+
+        function openWithFormat(obj,format)
             if obj.IsOpened
                 return;
             end
-            imaqreset
-            obj.VideoInputDevice = videoinput("hamamatsu",obj.DeviceID,"MONO8_2304x2304_Std");
+            obj.VideoInputDevice = videoinput("hamamatsu",obj.DeviceID,format);
             obj.SelectedSource = getselectedsource(obj.VideoInputDevice);
 
             obj.SelectedSource.TriggerSource = "INTERNAL";
@@ -37,7 +102,7 @@ classdef HamamatsuCamera < devices.camera.Camera
             obj.SelectedSource.HotPixelCorrectionLevel = "STANDARD";
             obj.SelectedSource.ExposureTime = obj.ExposureTime;
 
-            triggerconfig(obj.VideoInputDevice,"immediate");
+            triggerconfig(obj.VideoInputDevice,"manual");
             obj.VideoInputDevice.FramesPerTrigger = 1;
             obj.VideoInputDevice.TriggerRepeat = Inf;
 
@@ -47,13 +112,10 @@ classdef HamamatsuCamera < devices.camera.Camera
         end
 
         function imageSize = getImageSize(obj)
-            imageSize = [2304,2304];
+            imageSize = obj.VideoInputDevice.VideoResolution;
         end
 
         function close(obj)
-            if ~obj.IsOpened
-                return;
-            end
             if obj.IsClosed
                 return;
             end
@@ -68,7 +130,6 @@ classdef HamamatsuCamera < devices.camera.Camera
         function image = take(obj)
             image = [];
             if ~obj.IsOpened
-                
                 warning("This camera is not opened yet");
                 return;
             end
@@ -76,8 +137,8 @@ classdef HamamatsuCamera < devices.camera.Camera
                 warning("This camera is already closed");
                 return;
             end
-            
-            image = peekdata(obj.VideoInputDevice,1);
+            trigger(obj.VideoInputDevice);
+            image = getdata(obj.VideoInputDevice,1);
         end
 
         function setExposureTime(obj, time_sec)
