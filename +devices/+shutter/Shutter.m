@@ -1,8 +1,8 @@
 
 classdef Shutter < handle
     methods(Abstract)
-        openshutter(obj)
-        closeshutter(obj)
+        openShutter(obj)
+        closeShutter(obj)
         dispose(obj)
     end
 end
