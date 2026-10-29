@@ -2,7 +2,6 @@ classdef SC30 < devices.shutter.Shutter
     properties(Access = private)
         SerialPort
         Disposed logical
-        Mode devices.shutter.thorlabs.Mode
     end
 
     methods(Access = private)
@@ -23,8 +22,9 @@ classdef SC30 < devices.shutter.Shutter
                 obj devices.shutter.thorlabs.SC30
                 mode devices.shutter.thorlabs.Mode
             end
-            if mode ~= obj.Mode
-                error("Mode[%s] is needed, but current mode is [%s]",mode,obj.Mode);
+            currentMode = obj.getMode();
+            if mode ~= currentMode
+                error("Mode[%s] is needed, but current mode is [%s]",mode,currentMode);
             end
         end
 
@@ -96,14 +96,29 @@ classdef SC30 < devices.shutter.Shutter
                 channel int32
                 open logical
             end
+            obj.assertCurrentModeIs(devices.shutter.thorlabs.Mode.Manual);
+            obj.enable(channel,open);
+        end
+
+        function enable(obj,channel,state)
+            arguments
+                obj devices.shutter.thorlabs.SC30
+                channel int32
+                state logical
+            end
             obj.assertNotDisposed();
             obj.assertValidChannel(channel);
-            obj.assertCurrentModeIs(devices.shutter.thorlabs.Mode.Manual);
-            if open
-                sendCommand("enable" + channel + "=1");
+            if state
+                obj.sendCommand("enable" + channel + "=1");
             else
-                sendCommand("enable" + channel + "=0");
+                obj.sendCommand("enable" + channel + "=0");
             end
+        end
+
+        function enabled = isEnabled(obj,channel)
+            obj.assertNotDisposed();
+            obj.assertValidChannel(channel);
+            enabled = str2double(obj.sendCommandAndGetResult("enable"+channel+"?")) == 1;
         end
 
         function synced = isSyncEnabled(obj)
@@ -174,7 +189,9 @@ classdef SC30 < devices.shutter.Shutter
             arguments(Output)
                 mode devices.shutter.thorlabs.Mode
             end
-            mode = obj.Mode;
+            mode = devices.shutter.thorlabs.Mode( ...
+                str2double(obj.sendCommandAndGetResult("mode?")) ...
+            );
         end
 
         function mode = setMode(obj,mode)
@@ -183,7 +200,6 @@ classdef SC30 < devices.shutter.Shutter
                 mode devices.shutter.thorlabs.Mode
             end
             obj.sendCommand("mode="+double(mode));
-            obj.Mode = mode;
         end
 
         function syncMode = getSyncMode(obj,shutterMode)
@@ -209,14 +225,12 @@ classdef SC30 < devices.shutter.Shutter
         end
 
         function startInternalModeControl(obj,channel)
-            obj.assertValidChannel(channel);
             obj.setMode("Internal");
-            obj.sendCommand("enable"+num2str(channel)+"=1");
+            obj.enable(channel,true);
         end
 
         function stopControl(obj,channel)
-            obj.assertValidChannel(channel);
-            obj.sendCommand("enable"+num2str(channel)+"=0");
+            obj.enable(channel,false);
         end
 
         function setInternalModeParameters(obj,channel,openTimeInMilliSeconds,closeTimeInMilliSeconds,repetition)

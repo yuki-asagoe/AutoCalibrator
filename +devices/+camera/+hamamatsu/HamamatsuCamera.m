@@ -1,5 +1,5 @@
 classdef HamamatsuCamera < devices.camera.Camera
-    %% Available Formats
+    %% Examples of Available Formats of Arca Flash 4.0
     % 'MONO12_2048x2048_Std'
     % 'MONO12_2048x2048_UltraQuiet'
     % 'MONO12_BIN2x2_1024x1024_Std'
