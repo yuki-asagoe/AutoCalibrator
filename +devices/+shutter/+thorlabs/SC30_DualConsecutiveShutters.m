@@ -19,12 +19,13 @@ classdef SC30_DualConsecutiveShutters < devices.shutter.Shutter
                 error("This conbination of opening time and closing time should exceed limit of dual shutter control");
             elseif closeTimeInMilliSeconds < 20
                 error("This close time duration is too short");
-            else
+            else % openTimeInMilliSeconds < 20
                 fullDuration = openTimeInMilliSeconds + closeTimeInMilliSeconds;
-                openTime = floor(fullDuration/2);
+                openTime = 20;
                 closeTime = fullDuration - openTime;
+                delayTime = openTime - openTimeInMilliSeconds;
                 obj.sc30.setInternalModeParameters(1,openTime,closeTime,repetition);
-                obj.sc30.enableSyncDelayed("Internal",openTime-openTimeInMilliSeconds);
+                obj.sc30.enableSyncDelayed("Internal",delayTime);
                 obj.sc30.setMode("Internal");
             end
         end
