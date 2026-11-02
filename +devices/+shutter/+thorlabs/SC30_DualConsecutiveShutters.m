@@ -1,0 +1,53 @@
+classdef SC30_DualConsecutiveShutters < devices.shutter.Shutter
+    properties(Access = private)
+        sc30 devices.shutter.thorlabs.SC30
+    end
+    
+    methods
+        function obj = SC30_DualConsecutiveShutters(serialportName)
+            obj.sc30 = devices.shutter.thorlabs.SC30(serialportName);
+        end
+        
+        function setExposurePattern(obj,openTimeInMilliSeconds,closeTimeInMilliSeconds,repetition)
+            % The duration of open/close are enough long in single control
+            if openTimeInMilliSeconds >= 20 && closeTimeInMilliSeconds >= 20
+                obj.sc30.disableSync();
+                obj.sc30.setMode("Manual");
+                obj.sc30.openShutter(2);
+                obj.sc30.setInternalModeParameters(1,openTimeInMilliSeconds,closeTimeInMilliSeconds,repetition);
+            elseif openTimeInMilliSeconds + closeTimeInMilliSeconds < 20 + 20
+                error("This conbination of opening time and closing time should exceed limit of dual shutter control");
+            elseif closeTimeInMilliSeconds < 20
+                error("This close time duration is too short");
+            else
+                fullDuration = openTimeInMilliSeconds + closeTimeInMilliSeconds;
+                openTime = floor(fullDuration/2);
+                closeTime = fullDuration - openTime;
+                obj.sc30.setInternalModeParameters(1,openTime,closeTime,repetition);
+                obj.sc30.enableSyncDelayed("Internal",openTime-openTimeInMilliSeconds);
+                obj.sc30.setMode("Internal");
+            end
+        end
+
+        function start(obj)
+            obj.sc30.startInternalModeControl(1);
+        end
+
+        function stop(obj)
+            obj.sc30.stopControl(1);
+        end
+
+        function openShutter(obj)
+            obj.start();
+        end
+
+        function closeShutter(obj)
+            obj.stop();
+        end
+
+        function dispose(obj)
+            obj.sc30.dispose();
+        end
+    end
+end
+
