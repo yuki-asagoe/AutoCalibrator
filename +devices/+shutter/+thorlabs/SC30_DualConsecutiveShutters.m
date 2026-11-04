@@ -39,11 +39,15 @@ classdef SC30_DualConsecutiveShutters < devices.shutter.Shutter
         end
 
         function openShutter(obj)
-            obj.start();
+            obj.sc30.setMode("Manual");
+            obj.sc30.openShutter(1);
+            obj.sc30.openShutter(2);
         end
 
         function closeShutter(obj)
-            obj.stop();
+            obj.sc30.setMode("Manual");
+            obj.sc30.closeShutter(1);
+            obj.sc30.closeShutter(2);
         end
 
         function dispose(obj)

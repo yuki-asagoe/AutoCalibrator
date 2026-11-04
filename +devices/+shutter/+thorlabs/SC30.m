@@ -29,7 +29,7 @@ classdef SC30 < devices.shutter.Shutter
         end
 
         function flushInput(obj)
-            if obj.SerialPort.NumBytesAvailable > 0
+            while obj.SerialPort.NumBytesAvailable > 0
                 flush(obj.SerialPort,"input");
             end
         end
@@ -52,8 +52,10 @@ classdef SC30 < devices.shutter.Shutter
         function resultValue = sendCommandAndGetResult(obj,command)
             obj.flushInput();
             obj.sendCommand(command);
-            readline(obj.SerialPort); % SC30 sends empty line at start of response
-            line = readline(obj.SerialPort);
+            line = readline(obj.SerialPort); % SC30 sends empty line at start of response
+            while line == "" || line == ">"
+                line = readline(obj.SerialPort);
+            end
             resultValue = obj.parseResponse(line);
         end
     end
@@ -62,7 +64,6 @@ classdef SC30 < devices.shutter.Shutter
         function obj = SC30(portname)
             obj.Disposed = false;
             obj.SerialPort = serialport(portname,115200);
-            % SC30 seems send carriage return as terminator (or might be sending CRLF?)
             obj.SerialPort.configureTerminator("CR","CR/LF");
             pause(0.5);
             result = obj.sendCommandAndGetResult("model?");
