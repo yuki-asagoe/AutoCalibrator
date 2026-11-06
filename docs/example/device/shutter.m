@@ -78,3 +78,28 @@ sc30.enable(1,false);
 if sc30.isEnabled(1)
     disp("Auto control working");
 end
+
+%% devices.shutter.thorlabs.SC30_DualConsecutiveShutters
+% This controls 2 shutters in sc30, in assuming the shutters are placed in same optical path.
+
+% Initialize
+shutters = devices.shutter.thorlabs.SC30_DualConsecutiveShutters("COM1");
+
+% open both shutters
+shutters.openShutter();
+
+% close both shutters
+shutters.closeShutter();
+
+% set exposere time
+% open 10 ms / close 40 ms / repetation 10
+shutters.setExposerePattern(10,40,10);
+
+% start shutter control pattern
+shutters.start();
+
+% stop shutter control
+shutters.close();
+
+% close connection
+shutters.dispose();
