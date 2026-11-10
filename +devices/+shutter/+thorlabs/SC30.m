@@ -52,11 +52,17 @@ classdef SC30 < devices.shutter.Shutter
         function resultValue = sendCommandAndGetResult(obj,command)
             obj.flushInput();
             obj.sendCommand(command);
-            line = readline(obj.SerialPort); % SC30 sends empty line at start of response
-            while line == "" || line == ">"
+            % SC30 sends empty line at start of response
+            while true
                 line = readline(obj.SerialPort);
+                if line == "" || line == ">"
+                    continue;
+                end
+                [resultValue, commandName] = obj.parseResponse(line);
+                if lower(command) == lower(commandName+"?")
+                    break;
+                end
             end
-            resultValue = obj.parseResponse(line);
         end
     end
 

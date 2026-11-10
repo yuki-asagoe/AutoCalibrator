@@ -11,10 +11,9 @@ classdef SC30_DualConsecutiveShutters < devices.shutter.Shutter
         function setExposurePattern(obj,openTimeInMilliSeconds,closeTimeInMilliSeconds,repetition)
             % The duration of open/close are enough long in single control
             if openTimeInMilliSeconds >= 20 && closeTimeInMilliSeconds >= 20
-                obj.sc30.disableSync();
-                obj.sc30.setMode("Manual");
-                obj.sc30.openShutter(2);
                 obj.sc30.setInternalModeParameters(1,openTimeInMilliSeconds,closeTimeInMilliSeconds,repetition);
+                obj.sc30.setInternalModeParameters(2,openTimeInMilliSeconds+100,20,1);
+                obj.sc30.enableSyncEqual("Internal");
             elseif openTimeInMilliSeconds + closeTimeInMilliSeconds < 20 + 20
                 error("This conbination of opening time and closing time should exceed limit of dual shutter control");
             elseif closeTimeInMilliSeconds < 20
@@ -25,6 +24,7 @@ classdef SC30_DualConsecutiveShutters < devices.shutter.Shutter
                 closeTime = fullDuration - openTime;
                 delayTime = openTime - openTimeInMilliSeconds;
                 obj.sc30.setInternalModeParameters(1,openTime,closeTime,repetition);
+                obj.sc30.setInternalModeParameters(2,openTime,closeTime,repetition);
                 obj.sc30.enableSyncDelayed("Internal",delayTime);
                 obj.sc30.setMode("Internal");
             end
