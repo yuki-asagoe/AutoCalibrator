@@ -29,7 +29,7 @@ classdef SC30 < devices.shutter.Shutter
         end
 
         function flushInput(obj)
-            if obj.SerialPort.NumBytesAvailable > 0
+            while obj.SerialPort.NumBytesAvailable > 0
                 flush(obj.SerialPort,"input");
             end
         end
@@ -52,9 +52,17 @@ classdef SC30 < devices.shutter.Shutter
         function resultValue = sendCommandAndGetResult(obj,command)
             obj.flushInput();
             obj.sendCommand(command);
-            readline(obj.SerialPort); % SC30 sends empty line at start of response
-            line = readline(obj.SerialPort);
-            resultValue = obj.parseResponse(line);
+            % SC30 sends empty line at start of response
+            while true
+                line = readline(obj.SerialPort);
+                if line == "" || line == ">"
+                    continue;
+                end
+                [resultValue, commandName] = obj.parseResponse(line);
+                if lower(command) == lower(commandName+"?")
+                    break;
+                end
+            end
         end
     end
 
@@ -62,7 +70,6 @@ classdef SC30 < devices.shutter.Shutter
         function obj = SC30(portname)
             obj.Disposed = false;
             obj.SerialPort = serialport(portname,115200);
-            % SC30 seems send carriage return as terminator
             obj.SerialPort.configureTerminator("CR","CR/LF");
             pause(0.5);
             result = obj.sendCommandAndGetResult("model?");
@@ -119,6 +126,22 @@ classdef SC30 < devices.shutter.Shutter
             obj.assertNotDisposed();
             obj.assertValidChannel(channel);
             enabled = str2double(obj.sendCommandAndGetResult("enable"+channel+"?")) == 1;
+        end
+
+        function unlock(obj)
+            obj.sendCommand("unlocked=1");
+        end
+        
+        function lock(obj)
+            obj.sendCommand("unlocked=0");
+        end
+
+        function unlocked = isUnlocked(obj)
+            arguments(Output)
+                unlocked logical
+            end
+            obj.assertNotDisposed();
+            unlocked = str2double(obj.sendCommandAndGetResult("unlocked?")) == 1;
         end
 
         function synced = isSyncEnabled(obj)
@@ -199,7 +222,11 @@ classdef SC30 < devices.shutter.Shutter
                 obj devices.shutter.thorlabs.SC30
                 mode devices.shutter.thorlabs.Mode
             end
+            unlocked = obj.isUnlocked();
             obj.sendCommand("mode="+double(mode));
+            if unlocked
+                obj.unlock();
+            end
         end
 
         function syncMode = getSyncMode(obj,shutterMode)
