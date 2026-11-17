@@ -85,7 +85,7 @@ classdef AffineTransformTester < handle
                     diffVec=detectedSpots(targetIndex,:) - detectedSpots(i,:);
                     normalizedVectors(j,:)=diffVec / norm(diffVec);
                 end
-                cosValues(i)=dot(normalizedVectors(1,:),normalizedVectors(1,:));
+                cosValues(i)=dot(normalizedVectors(1,:),normalizedVectors(2,:));
             end
             [~,I] = sort(cosValues);
 

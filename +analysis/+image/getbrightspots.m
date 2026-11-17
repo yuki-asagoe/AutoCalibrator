@@ -24,7 +24,7 @@ function brightspots = getbrightspots(image, maxoutputcount)
     % adaptthreshではここの係数は最大で0.6程度にしかならない
     % あとどのみちあとあと最大値をガウシアンの最大値と推定したりする都合で
     % 画像を局所平均で減ずるので結局局所平均は必要
-    binaryimg=imbinarize(img,localmean*0.7);
+    binaryimg=img > localmean*0.7;
     % モルフォロジーオープニングでさらに微小要素を除去
     morphWindow=true(5);
     morphWindow([1,5,21,25])=false;
