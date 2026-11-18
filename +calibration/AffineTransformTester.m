@@ -204,5 +204,42 @@ classdef AffineTransformTester < handle
 
             calibrator=calibration.PositionCalibrator.adjust(respondpoints,actualpoints);
         end
+        function [img,inputSpotsOnScreen, detectedSpots] = searchCellsInLocalRegion(obj, positionCalibrator, centerPosition, regionRadius, revision)
+            arguments(Input)
+                obj calibration.AffineTransformTester
+                positionCalibrator calibration.PositionCalibrator
+                centerPosition (1,2) double
+                regionRadius double
+                revision double = 5
+            end
+            sumIntensity = 0;
+            for y = 0:(revision-1)
+                diffY = 2 * regionRadius * (y/(revision-1) - 0.5);
+                actualY = centerPosition(2) + diffY;
+                for x = 0:(revision-1)
+                diffX = 2 * regionRadius * (x/(revision-1) - 0.5);
+                    if (diffY * diffY + diffX * diffX) >= (regionRadius * regionRadius * 1.01)
+                        continue;
+                    end
+                    actualX = centerPosition(1) + diffX;
+                    [calibratedX,calibratedY] = positionCalibrator.calibrate(actualX,actualY);
+                    phasemap = devices.slm.PhaseMap(xpixelcount,ypixelcount,pixelpitch_um,pixelpitch_um,obj.FocalLength_um,obj.WaveLength_nm);
+                    phasemap.addSpot(calibratedX,calibratedY,calibration.ZDistanceInfo(0).calibrate(0),1);
+                    slm.apply(phasemap.getPhaseArray());
+                    pause(0.05);
+                    image = obj.Camera.take();
+                    currentIntensity = sum(image(centerPosition(2) + (-regionRadius:regionRadius), centerPosition(1) + (-regionRadius:regionRadius)),"all");
+                    if sumIntensity < currentIntensity
+                        sumIntensity = currentIntensity;
+                        img = image;
+                        inputSpotsOnScreen = [calibratedX, calibratedY];
+                        detectedSpots = analysis.image.getbrightspots(img,1);
+                    end
+                end
+            end
+        end
     end
+
+    
+
 end
