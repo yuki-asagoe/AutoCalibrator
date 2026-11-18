@@ -5,33 +5,35 @@ classdef SC10 < devices.shutter.Shutter
     end
 
     methods(Access = private)
-        function sendCommand(obj, command)
-            writeline(obj.SerialPort, command);
-            while readline(obj.SerialPort) ~= ">"; end
+        function assertNotDisposed(obj)
+            if obj.Disposed
+                error("Error : this shutter controller connection is already closed, please reopen again");
+            end
         end
 
-        function [resultValue, commandName] = parseResponse(~,responseText)
-            if responseText == "Command error CMD_NOT_DEFINED"
-                resultValue = [];
-                return;
-            end
-            splitResponse = split(responseText,"? ");
-            resultValue = splitResponse(2);
-            commandName = splitResponse(1);
+        function sendCommand(obj, command)
+            obj.assertNotDisposed();
+            writeline(obj.SerialPort, command);
+            while readline(obj.SerialPort) ~= ">"; end % wait that the controller gets ready
+        end
+
+        function resultValue = parseResponse(~,responseText)
+            resultValue = responseText;
         end
 
         function result = sendCommandAndGetResult(obj, command)
+            obj.assertNotDisposed();
             flush(obj.SerialPort);
-            obj.sendCommand(command);
+            writeline(obj.SerialPort,command);
             while true
                 line = readline(obj.SerialPort);
                 if line == "" || line == ">"
                     continue;
+                elseif startsWith(line,"Command error")
+                    error("SC10 / communication error : "+line);
                 end
-                [result, commandName] = obj.parseResponse(line);
-                if lower(command) == lower(commandName+"?")
-                    break;
-                end
+                result = obj.parseResponse(line);
+                break;
             end
             while readline(obj.SerialPort) ~= ">"; end
         end
@@ -40,7 +42,7 @@ classdef SC10 < devices.shutter.Shutter
     methods(Access = public)
         function obj = SC10(portname)
             obj.SerialPort = serialport(portname,9600);
-            configureTerminator(obj.SerialPort,"CR","CR");
+            configureTerminator(obj.SerialPort,"CR/LF","CR");
             pause(0.5);
             
             writeline(obj.SerialPort,"");
